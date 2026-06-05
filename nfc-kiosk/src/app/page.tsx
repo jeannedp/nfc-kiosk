@@ -8,7 +8,7 @@ type Phase = "idle" | "scanning" | "loading" | "error";
 const DEBOUNCE_MS = 400;
 const ERROR_DISPLAY_MS = 5000;
 
-export default function KioskPageContent() {
+function KioskPageContent() {
   const searchParams = useSearchParams();
   const device = searchParams.get("device") ?? undefined;
   const testMode = searchParams.get("test") === "1";
