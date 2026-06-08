@@ -13,31 +13,62 @@ type Phase = "idle" | "scanning" | "loading" | "error";
 const DEBOUNCE_MS = 400;
 const ERROR_DISPLAY_MS = 5000;
 
-// Brand colours — TPG navy palette
-const NAVY      = "#1a237e";
-const NAVY_MID  = "#283593";
+const NAVY       = "#1a237e";
+const NAVY_MID   = "#283593";
 const NAVY_LIGHT = "#e8eaf6";
-const BLUE_SCAN = "#1565c0";
-const BLUE_GLOW = "#42a5f5";
+const BLUE_SCAN  = "#1565c0";
+const BLUE_GLOW  = "#42a5f5";
+const FONT       = "'Barlow', 'Barlow Semi Condensed', system-ui, sans-serif";
 
-// ─── Font: Barlow (closest match to TPG's actual site typography) ─────────────
-// The Perfume Gallery uses Barlow via Google Fonts in their Elementor build.
-// Barlow Semi Condensed at wide tracking matches the bottle labels exactly.
-const FONT = "'Barlow', 'Barlow Semi Condensed', system-ui, sans-serif";
+// ─────────────────────────────────────────────────────────────────────────────
+// IMAGE LIBRARY
+// ─────────────────────────────────────────────────────────────────────────────
+// Drop image files into /public/images/ and update the paths below.
+// The app falls back to the SVG illustration if any image is missing.
+//
+// LOGO
+//   /public/images/TPG_logo.png  — The Perfume Gallery logo
+//   Recommended: transparent PNG, any size (displayed at ~220px wide)
+//
+// KIOSK BOTTLE (home page scan screen)
+//   /public/images/kiosk/bottle.png
+//   Recommended: transparent PNG, portrait, ~300×600px
+//
+// KIOSK SCAN CIRCLE (home page)
+//   /public/images/kiosk/scan-circle.png
+//   Recommended: transparent PNG, landscape, ~400×140px
+//   If omitted the SVG animated circle is used instead.
+//
+// PRODUCT BOTTLES (perfume/[slug] pages)
+//   /public/images/products/aramis-impression.png
+//   /public/images/products/kilian-old-fashioned.png
+//   /public/images/products/pdm-percival.png
+//   /public/images/products/pdm-delina.png
+//   /public/images/products/amouage-outlands.png
+//   Recommended: transparent PNG, portrait, ~400×700px
+// ─────────────────────────────────────────────────────────────────────────────
+
+const IMAGES = {
+  logo:       "/images/TPG_logo.png",
+  bottle:     "/images/kiosk/bottle.png",
+  scanCircle: "/images/kiosk/scan-circle.png",
+} as const;
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 function KioskPageContent() {
   const searchParams = useSearchParams();
-  const device = searchParams.get("device") ?? undefined;
+  const device   = searchParams.get("device") ?? undefined;
   const testMode = searchParams.get("test") === "1";
 
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef    = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const bufferRef = useRef<string>("");
+  const bufferRef   = useRef<string>("");
 
-  const [phase, setPhase] = useState<Phase>("idle");
-  const [errorMsg, setErrorMsg] = useState<string>("");
+  const [phase, setPhase]           = useState<Phase>("idle");
+  const [errorMsg, setErrorMsg]     = useState<string>("");
   const [manualInput, setManualInput] = useState<string>("");
-  const [showAdmin, setShowAdmin] = useState(testMode);
+  const [showAdmin, setShowAdmin]   = useState(testMode);
 
   // ── Focus management ──────────────────────────────────────────────────────
   const focusInput = useCallback(() => {
@@ -163,18 +194,15 @@ function KioskPageContent() {
         <p style={s.tagline}>Discover Your Signature</p>
       </header>
 
-      {/* ── Divider ────────────────────────────────────────────────────────── */}
       <div style={s.divider} />
 
       {/* ── Main content ───────────────────────────────────────────────────── */}
       <main style={s.main}>
 
-        {/* Illustration */}
         <div style={s.illustrationWrap}>
           <KioskIllustration phase={phase} />
         </div>
 
-        {/* Status block */}
         <div style={s.statusBlock}>
           {phase === "idle" && (
             <>
@@ -193,9 +221,7 @@ function KioskPageContent() {
 
           {phase === "scanning" && (
             <>
-              <h1 style={{ ...s.heading, color: BLUE_SCAN }}>
-                Identifying fragrance…
-              </h1>
+              <h1 style={{ ...s.heading, color: BLUE_SCAN }}>Identifying fragrance…</h1>
               <p style={s.subtext}>Keep the bottle on the circle</p>
               <ScanningIndicator />
             </>
@@ -203,9 +229,7 @@ function KioskPageContent() {
 
           {phase === "loading" && (
             <>
-              <h1 style={{ ...s.heading, color: BLUE_SCAN }}>
-                Finding your fragrance…
-              </h1>
+              <h1 style={{ ...s.heading, color: BLUE_SCAN }}>Finding your fragrance…</h1>
               <p style={s.subtext}>Just a moment</p>
               <ScanningIndicator />
             </>
@@ -213,21 +237,14 @@ function KioskPageContent() {
 
           {isError && (
             <>
-              <h1 style={{ ...s.heading, color: "#b71c1c" }}>
-                Fragrance not found
-              </h1>
-              <p style={{ ...s.subtext, color: "#c62828" }}>
-                {errorMsg}
-              </p>
-              <p style={s.resetNote}>
-                Resetting in {ERROR_DISPLAY_MS / 1000} seconds…
-              </p>
+              <h1 style={{ ...s.heading, color: "#b71c1c" }}>Fragrance not found</h1>
+              <p style={{ ...s.subtext, color: "#c62828" }}>{errorMsg}</p>
+              <p style={s.resetNote}>Resetting in {ERROR_DISPLAY_MS / 1000} seconds…</p>
             </>
           )}
         </div>
       </main>
 
-      {/* ── Divider ────────────────────────────────────────────────────────── */}
       <div style={s.divider} />
 
       {/* ── Footer ─────────────────────────────────────────────────────────── */}
@@ -276,324 +293,324 @@ function KioskPageContent() {
   );
 }
 
-// ─── TPG Logo ─────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// TPG LOGO — real image with SVG fallback
+// ─────────────────────────────────────────────────────────────────────────────
 
 function TPGLogo() {
+  const [imgFailed, setImgFailed] = useState(false);
+
+  if (!imgFailed) {
+    return (
+      <img
+        src={IMAGES.logo}
+        alt="The Perfume Gallery"
+        height={60}
+        style={{
+          height: 60,
+          width: "auto",
+          maxWidth: 240,
+          display: "block",
+          // The real logo has a white background — make it transparent on white page
+          mixBlendMode: "multiply" as const,
+        }}
+        onError={() => setImgFailed(true)}
+      />
+    );
+  }
+
+  // ── Fallback: SVG recreation ──────────────────────────────────────────────
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-      {/* TPG monogram mark — matches actual logo geometry */}
-      <svg width="72" height="56" viewBox="0 0 72 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+      <svg width="68" height="52" viewBox="0 0 72 56" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect x="1.5" y="1.5" width="69" height="53" stroke={NAVY} strokeWidth="3" fill="none"/>
         <rect x="1.5" y="1.5" width="18" height="16" fill="white"/>
         <rect x="52.5" y="38.5" width="18" height="16" fill="white"/>
-        <text x="7" y="37" fontFamily="'Barlow', sans-serif" fontSize="26" fontWeight="700" fill={NAVY} letterSpacing="-1">T</text>
+        <text x="7"  y="37" fontFamily="'Barlow', sans-serif" fontSize="26" fontWeight="700" fill={NAVY} letterSpacing="-1">T</text>
         <text x="25" y="37" fontFamily="'Barlow', sans-serif" fontSize="26" fontWeight="700" fill={NAVY} letterSpacing="-1">P</text>
         <text x="44" y="37" fontFamily="'Barlow', sans-serif" fontSize="26" fontWeight="700" fill={NAVY} letterSpacing="-1">G</text>
       </svg>
-
-      {/* Wordmark in Barlow — matching the actual TPG bottle label typography */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "0px" }}>
-        {["THE", "PERFUME", "GALLERY"].map((word) => (
-          <span key={word} style={{
-            fontSize: "1.15rem",
-            fontFamily: FONT,
-            fontWeight: 600,
-            color: NAVY,
-            letterSpacing: "0.22em",
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        {["THE", "PERFUME", "GALLERY"].map((w) => (
+          <span key={w} style={{
+            fontFamily: FONT, fontWeight: 600, fontSize: "1.1rem",
+            color: NAVY, letterSpacing: "0.2em", lineHeight: 1.15,
             textTransform: "uppercase" as const,
-            lineHeight: 1.15,
-          }}>{word}</span>
+          }}>{w}</span>
         ))}
       </div>
     </div>
   );
 }
 
-// ─── TPG Bottle — cobalt blue cylindrical bottle matching the real product ────
+// ─────────────────────────────────────────────────────────────────────────────
+// KIOSK ILLUSTRATION — real images with animated SVG fallback
+//
+// Priority order:
+//   1. /public/images/kiosk/bottle.png     — your photo / render of the bottle
+//   2. /public/images/kiosk/scan-circle.png — your photo of the glowing circle
+//   3. SVG fallback for anything missing
+// ─────────────────────────────────────────────────────────────────────────────
 
-function TPGBottle({ phase }: { phase: Phase }) {
+function KioskIllustration({ phase }: { phase: Phase }) {
+  const [bottleFailed, setBottleFailed] = useState(false);
+  const [circleFailed, setCircleFailed] = useState(false);
+
   const isScanning = phase === "scanning" || phase === "loading";
   const isError    = phase === "error";
 
-  // Cobalt blue body colour matching the actual TPG bottle
+  const circleColor = isError ? "#c62828" : BLUE_SCAN;
+  const glowColor   = isError ? "#ef5350" : BLUE_GLOW;
+  const pulseAnim   = isScanning
+    ? "scanRipple 1.4s ease-out infinite"
+    : isError ? "none"
+    : "idlePulse 3s ease-in-out infinite";
+
+  return (
+    <div style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center", gap: 0 }}>
+
+      {/* ── Bottle ─────────────────────────────────────────────────────────── */}
+      <div style={{
+        position: "relative",
+        zIndex: 2,
+        marginBottom: -16,
+        // Animate: float in idle, still in scanning, shake on error
+        animation: isError
+          ? "none"
+          : isScanning
+          ? "none"
+          : "bottleFloat 4s ease-in-out infinite",
+      }}>
+        {!bottleFailed ? (
+          <img
+            src={IMAGES.bottle}
+            alt="Perfume bottle"
+            style={{
+              height: 260,
+              width: "auto",
+              maxWidth: 200,
+              display: "block",
+              objectFit: "contain",
+              // Drop shadow so it looks placed on the surface
+              filter: "drop-shadow(0 12px 28px rgba(26,58,156,0.30)) drop-shadow(0 2px 6px rgba(0,0,0,0.18))",
+            }}
+            onError={() => setBottleFailed(true)}
+          />
+        ) : (
+          // SVG fallback bottle
+          <TPGBottleSVG phase={phase} />
+        )}
+      </div>
+
+      {/* ── Scan circle ────────────────────────────────────────────────────── */}
+      <div style={{ position: "relative", zIndex: 1 }}>
+        {!circleFailed ? (
+          // Real image of the illuminated circle — animated overlay on top
+          <div style={{ position: "relative", display: "inline-block" }}>
+            <img
+              src={IMAGES.scanCircle}
+              alt="Scan circle"
+              style={{
+                width: 280,
+                height: "auto",
+                display: "block",
+                objectFit: "contain",
+                // Colour-shift on error state
+                filter: isError
+                  ? "hue-rotate(180deg) saturate(1.5)"
+                  : isScanning
+                  ? "brightness(1.25) saturate(1.3)"
+                  : "none",
+                transition: "filter 0.4s ease",
+              }}
+              onError={() => setCircleFailed(true)}
+            />
+            {/* Animated pulse ring overlaid on the image */}
+            <svg
+              viewBox="0 0 280 90"
+              width="280"
+              style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none", overflow: "visible" }}
+            >
+              <ellipse cx="140" cy="50" rx="100" ry="16"
+                fill="none" stroke={glowColor} strokeWidth="1.5"
+                opacity={isScanning ? "0.7" : "0.2"}
+                style={{ animation: pulseAnim }} />
+              {isScanning && (
+                <ellipse cx="140" cy="50" rx="80" ry="12"
+                  fill="none" stroke={circleColor} strokeWidth="1"
+                  opacity="0.6"
+                  style={{ animation: "scanRipple 1.4s ease-out infinite 0.3s" }} />
+              )}
+              {isScanning && (
+                <rect x="90" y="47" width="100" height="2.5" rx="1.25"
+                  fill={circleColor} opacity="0.55"
+                  style={{ animation: "scanBar 1.3s ease-in-out infinite" }} />
+              )}
+            </svg>
+          </div>
+        ) : (
+          // SVG fallback circle
+          <ScanCircleSVG phase={phase} />
+        )}
+      </div>
+
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SVG FALLBACKS — used when image files are not yet present
+// ─────────────────────────────────────────────────────────────────────────────
+
+function TPGBottleSVG({ phase }: { phase: Phase }) {
+  const isScanning = phase === "scanning" || phase === "loading";
+  const isError    = phase === "error";
+
   const COBALT      = "#1a3a9c";
   const COBALT_MID  = "#1e44b8";
   const COBALT_DARK = "#0f2566";
   const COBALT_LITE = "#2d55d4";
-  const SILVER      = "#c8cdd6";
   const SILVER_MID  = "#e2e6ed";
   const SILVER_DARK = "#8a9099";
 
   return (
-    <svg
-      viewBox="0 0 160 340"
-      width="130"
-      height="276"
-      xmlns="http://www.w3.org/2000/svg"
+    <svg viewBox="0 0 160 340" width="130" height="276" xmlns="http://www.w3.org/2000/svg"
       style={{
         display: "block",
-        filter: `drop-shadow(0 12px 32px rgba(26,58,156,0.35)) drop-shadow(0 2px 8px rgba(0,0,0,0.2))`,
+        filter: "drop-shadow(0 12px 32px rgba(26,58,156,0.35)) drop-shadow(0 2px 8px rgba(0,0,0,0.2))",
         animation: isError ? "none" : isScanning ? "none" : "bottleFloat 4s ease-in-out infinite",
-      }}
-    >
+      }}>
       <defs>
-        {/* Main bottle cylinder gradient — light from upper-left */}
-        <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <linearGradient id="bG" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%"   stopColor={COBALT_DARK} />
           <stop offset="18%"  stopColor={COBALT_MID} />
           <stop offset="42%"  stopColor={COBALT_LITE} />
           <stop offset="58%"  stopColor={COBALT_MID} />
           <stop offset="100%" stopColor={COBALT_DARK} />
         </linearGradient>
-        {/* Specular highlight streak */}
-        <linearGradient id="highlightGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <linearGradient id="hG" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%"   stopColor="white" stopOpacity="0" />
           <stop offset="50%"  stopColor="white" stopOpacity="0.22" />
           <stop offset="100%" stopColor="white" stopOpacity="0" />
         </linearGradient>
-        {/* Silver cap gradient */}
-        <linearGradient id="capGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <linearGradient id="cG" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%"   stopColor={SILVER_DARK} />
           <stop offset="25%"  stopColor={SILVER_MID} />
           <stop offset="50%"  stopColor="#ffffff" />
           <stop offset="75%"  stopColor={SILVER_MID} />
           <stop offset="100%" stopColor={SILVER_DARK} />
         </linearGradient>
-        {/* Cap top ellipse */}
-        <radialGradient id="capTopGrad" cx="40%" cy="35%" r="60%">
+        <radialGradient id="cT" cx="40%" cy="35%" r="60%">
           <stop offset="0%"   stopColor="#ffffff" />
-          <stop offset="100%" stopColor={SILVER} />
+          <stop offset="100%" stopColor={SILVER_MID} />
         </radialGradient>
-        {/* Neck gradient */}
-        <linearGradient id="neckGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%"   stopColor={SILVER_DARK} />
-          <stop offset="35%"  stopColor={SILVER_MID} />
-          <stop offset="50%"  stopColor="#f0f2f5" />
-          <stop offset="65%"  stopColor={SILVER_MID} />
-          <stop offset="100%" stopColor={SILVER_DARK} />
-        </linearGradient>
-        {/* Bottom shadow */}
-        <radialGradient id="shadowGrad" cx="50%" cy="50%" r="50%">
+        <radialGradient id="sG" cx="50%" cy="50%" r="50%">
           <stop offset="0%"   stopColor="rgba(0,0,0,0.25)" />
           <stop offset="100%" stopColor="rgba(0,0,0,0)" />
         </radialGradient>
       </defs>
-
-      {/* ── Drop shadow ellipse ── */}
-      <ellipse cx="80" cy="334" rx="52" ry="7" fill="url(#shadowGrad)" />
-
-      {/* ── Bottle body — tall cylinder ── */}
-      {/* Main cylinder — rounded rect simulating cylinder */}
-      <rect x="26" y="108" width="108" height="218" rx="16"
-        fill="url(#bodyGrad)" />
-      {/* Top ellipse cap of cylinder */}
-      <ellipse cx="80" cy="116" rx="54" ry="10"
-        fill={COBALT_MID} />
-      {/* Bottom ellipse */}
-      <ellipse cx="80" cy="318" rx="54" ry="10"
-        fill={COBALT_DARK} />
-      {/* Specular highlight on body */}
-      <rect x="38" y="115" width="44" height="210" rx="12"
-        fill="url(#highlightGrad)" />
-      {/* Left edge darkening */}
-      <rect x="26" y="116" width="18" height="206" rx="8"
-        fill="rgba(0,0,0,0.18)" />
-      {/* Right edge darkening */}
-      <rect x="116" y="116" width="18" height="206" rx="8"
-        fill="rgba(0,0,0,0.22)" />
-
-      {/* ── Label panel ── */}
-      <rect x="36" y="130" width="88" height="158" rx="4"
-        fill={COBALT} fillOpacity="0.0" />
-      {/* White label background */}
-      <rect x="36" y="148" width="88" height="130" rx="3"
-        fill="white" fillOpacity="0.1" />
-
-      {/* ── TPG mark on bottle ── */}
-      {/* Outer rectangle */}
-      <rect x="48" y="155" width="38" height="29" rx="0"
-        fill="none" stroke="white" strokeWidth="1.8" />
-      {/* Top-left cutout */}
+      <ellipse cx="80" cy="334" rx="52" ry="7" fill="url(#sG)" />
+      <rect x="26" y="108" width="108" height="218" rx="16" fill="url(#bG)" />
+      <ellipse cx="80" cy="116" rx="54" ry="10" fill={COBALT_MID} />
+      <ellipse cx="80" cy="318" rx="54" ry="10" fill={COBALT_DARK} />
+      <rect x="38" y="115" width="44" height="210" rx="12" fill="url(#hG)" />
+      <rect x="26" y="116" width="18" height="206" rx="8" fill="rgba(0,0,0,0.18)" />
+      <rect x="116" y="116" width="18" height="206" rx="8" fill="rgba(0,0,0,0.22)" />
+      <rect x="36" y="148" width="88" height="130" rx="3" fill="white" fillOpacity="0.1" />
+      <rect x="48" y="155" width="38" height="29" fill="none" stroke="white" strokeWidth="1.8" />
       <rect x="48" y="155" width="10" height="8" fill={COBALT} />
-      {/* Bottom-right cutout */}
       <rect x="76" y="176" width="10" height="8" fill={COBALT} />
-      {/* TPG letters */}
-      <text x="51" y="175" fontFamily="'Barlow', sans-serif" fontSize="13"
-        fontWeight="700" fill="white" letterSpacing="0.5">TPG</text>
-
-      {/* ── Wordmark on bottle ── */}
-      <text x="52" y="196" fontFamily="'Barlow', sans-serif" fontSize="6.5"
-        fontWeight="600" fill="white" letterSpacing="1.5">THE</text>
-      <text x="52" y="205" fontFamily="'Barlow', sans-serif" fontSize="6.5"
-        fontWeight="600" fill="white" letterSpacing="1.5">PERFUME</text>
-      <text x="52" y="214" fontFamily="'Barlow', sans-serif" fontSize="6.5"
-        fontWeight="600" fill="white" letterSpacing="1.5">GALLERY</text>
-
-      {/* ── Size label at bottom of body ── */}
-      <line x1="40" y1="256" x2="120" y2="256"
-        stroke="white" strokeWidth="0.75" opacity="0.35" />
-      <text x="80" y="270" textAnchor="middle"
-        fontFamily="'Barlow', sans-serif" fontSize="7"
-        fontWeight="500" fill="white" letterSpacing="2" opacity="0.75">
-        EXTRAIT | 30ml
-      </text>
-
-      {/* ── Neck — narrower cylinder ── */}
-      <rect x="52" y="70" width="56" height="42" rx="6"
-        fill="url(#neckGrad)" />
-      {/* Neck top ellipse */}
-      <ellipse cx="80" cy="72" rx="28" ry="5.5"
-        fill={SILVER_MID} />
-      {/* Neck bottom ellipse */}
-      <ellipse cx="80" cy="110" rx="28" ry="5"
-        fill={SILVER} />
-      {/* Neck highlight */}
-      <rect x="56" y="72" width="16" height="40" rx="4"
-        fill="white" opacity="0.2" />
-      {/* Neck collar ring */}
-      <rect x="48" y="104" width="64" height="8" rx="3"
-        fill="url(#neckGrad)" />
-      <ellipse cx="80" cy="104" rx="32" ry="5"
-        fill={SILVER_MID} />
-
-      {/* ── Cap — tall rounded cylinder (silver) ── */}
-      {/* Main cap body */}
-      <rect x="46" y="14" width="68" height="58" rx="12"
-        fill="url(#capGrad)" />
-      {/* Cap top ellipse */}
-      <ellipse cx="80" cy="16" rx="34" ry="9"
-        fill="url(#capTopGrad)" />
-      {/* Cap bottom ellipse */}
-      <ellipse cx="80" cy="70" rx="34" ry="7"
-        fill={SILVER} />
-      {/* Cap left shadow */}
-      <rect x="46" y="18" width="14" height="52" rx="6"
-        fill="rgba(0,0,0,0.12)" />
-      {/* Cap right shadow */}
-      <rect x="100" y="18" width="14" height="52" rx="6"
-        fill="rgba(0,0,0,0.15)" />
-      {/* Cap specular highlight */}
-      <rect x="60" y="16" width="24" height="52" rx="8"
-        fill="white" opacity="0.18" />
-      {/* Cap ridge near bottom */}
-      <rect x="46" y="62" width="68" height="5" rx="2"
-        fill={SILVER_DARK} opacity="0.4" />
+      <text x="51" y="175" fontFamily="'Barlow', sans-serif" fontSize="13" fontWeight="700" fill="white" letterSpacing="0.5">TPG</text>
+      <text x="52" y="196" fontFamily="'Barlow', sans-serif" fontSize="6.5" fontWeight="600" fill="white" letterSpacing="1.5">THE</text>
+      <text x="52" y="205" fontFamily="'Barlow', sans-serif" fontSize="6.5" fontWeight="600" fill="white" letterSpacing="1.5">PERFUME</text>
+      <text x="52" y="214" fontFamily="'Barlow', sans-serif" fontSize="6.5" fontWeight="600" fill="white" letterSpacing="1.5">GALLERY</text>
+      <line x1="40" y1="256" x2="120" y2="256" stroke="white" strokeWidth="0.75" opacity="0.35" />
+      <text x="80" y="270" textAnchor="middle" fontFamily="'Barlow', sans-serif" fontSize="7" fontWeight="500" fill="white" letterSpacing="2" opacity="0.75">EXTRAIT | 30ml</text>
+      <rect x="52" y="70" width="56" height="42" rx="6" fill="url(#cG)" />
+      <ellipse cx="80" cy="72" rx="28" ry="5.5" fill={SILVER_MID} />
+      <ellipse cx="80" cy="110" rx="28" ry="5" fill={SILVER_MID} />
+      <rect x="56" y="72" width="16" height="40" rx="4" fill="white" opacity="0.2" />
+      <rect x="48" y="104" width="64" height="8" rx="3" fill="url(#cG)" />
+      <ellipse cx="80" cy="104" rx="32" ry="5" fill={SILVER_MID} />
+      <rect x="46" y="14" width="68" height="58" rx="12" fill="url(#cG)" />
+      <ellipse cx="80" cy="16" rx="34" ry="9" fill="url(#cT)" />
+      <ellipse cx="80" cy="70" rx="34" ry="7" fill={SILVER_MID} />
+      <rect x="46" y="18" width="14" height="52" rx="6" fill="rgba(0,0,0,0.12)" />
+      <rect x="100" y="18" width="14" height="52" rx="6" fill="rgba(0,0,0,0.15)" />
+      <rect x="60" y="16" width="24" height="52" rx="8" fill="white" opacity="0.18" />
+      <rect x="46" y="62" width="68" height="5" rx="2" fill={SILVER_DARK} opacity="0.4" />
     </svg>
   );
 }
 
-// ─── Kiosk illustration — bottle above glowing blue scan circle ───────────────
-
-function KioskIllustration({ phase }: { phase: Phase }) {
+function ScanCircleSVG({ phase }: { phase: Phase }) {
   const isScanning = phase === "scanning" || phase === "loading";
   const isError    = phase === "error";
 
-  const circleColor  = isError ? "#c62828" : BLUE_SCAN;
-  const glowColor    = isError ? "#ef5350" : BLUE_GLOW;
-  const pulseAnim    = isScanning
+  const circleColor = isError ? "#c62828" : BLUE_SCAN;
+  const glowColor   = isError ? "#ef5350" : BLUE_GLOW;
+  const pulseAnim   = isScanning
     ? "scanRipple 1.4s ease-out infinite"
     : isError ? "none"
     : "idlePulse 3s ease-in-out infinite";
 
   return (
-    <div style={{ position: "relative", display: "inline-block" }}>
-      {/* Glowing scan circle — rendered as a separate SVG layer behind the bottle */}
-      <svg
-        viewBox="0 0 300 100"
-        width="280"
-        style={{ display: "block", overflow: "visible", marginBottom: -8 }}
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <defs>
-          <radialGradient id="cglow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%"   stopColor={glowColor} stopOpacity={isScanning ? "0.5" : isError ? "0.15" : "0.28"} />
-            <stop offset="60%"  stopColor={glowColor} stopOpacity={isScanning ? "0.15" : "0.06"} />
-            <stop offset="100%" stopColor={glowColor} stopOpacity="0" />
-          </radialGradient>
-          <linearGradient id="surfGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#f2f2f2" />
-            <stop offset="100%" stopColor="#e4e4e4" />
-          </linearGradient>
-        </defs>
-
-        {/* Counter surface */}
-        <rect x="10" y="56" width="280" height="36" rx="6" fill="url(#surfGrad)" />
-        <rect x="10" y="54" width="280" height="5" rx="2.5" fill="#ebebeb" />
-
-        {/* Glow pool beneath circle */}
-        <ellipse cx="150" cy="68" rx="90" ry="22" fill="url(#cglow)" />
-
-        {/* Outer pulse ring */}
-        <ellipse cx="150" cy="66" rx="78" ry="13"
-          fill="none" stroke={glowColor} strokeWidth="1"
-          opacity={isScanning ? "0.7" : isError ? "0.15" : "0.25"}
-          style={{ animation: pulseAnim }} />
-
-        {/* Mid ring */}
-        <ellipse cx="150" cy="66" rx="64" ry="10.5"
-          fill="none" stroke={circleColor} strokeWidth="1.2"
-          opacity={isScanning ? "0.85" : "0.4"}
-          style={{ animation: isScanning ? "scanRipple 1.4s ease-out infinite 0.25s" : "none" }} />
-
-        {/* Main illuminated scan circle */}
-        <ellipse cx="150" cy="66" rx="52" ry="8.5"
-          fill={isScanning ? `${glowColor}22` : isError ? "rgba(198,40,40,0.06)" : `${BLUE_SCAN}0e`}
-          stroke={circleColor}
-          strokeWidth="2" />
-
-        {/* Inner dashed ring */}
-        <ellipse cx="150" cy="66" rx="36" ry="5.8"
-          fill="none" stroke={circleColor}
-          strokeWidth="0.75" strokeDasharray="5 3.5" opacity="0.45" />
-
-        {/* Quadrant tick marks */}
-        {[0, 90, 180, 270].map((deg) => {
-          const r = Math.PI / 180;
-          const ox = 150, oy = 66, ra = 50, rb = 8;
-          const x1 = ox + (ra - 5) * Math.cos(deg * r);
-          const y1 = oy + (rb - 1) * Math.sin(deg * r);
-          const x2 = ox + (ra + 5) * Math.cos(deg * r);
-          const y2 = oy + (rb + 1) * Math.sin(deg * r);
-          return <line key={deg} x1={x1} y1={y1} x2={x2} y2={y2}
-            stroke={circleColor} strokeWidth="1.5" opacity="0.55" />;
-        })}
-
-        {/* Scanning sweep bar */}
-        {isScanning && (
-          <rect x="98" y="63" width="104" height="2.5" rx="1.25"
-            fill={circleColor} opacity="0.6"
-            style={{ animation: "scanBar 1.3s ease-in-out infinite" }} />
-        )}
-      </svg>
-
-      {/* The actual bottle — centred above the circle */}
-      <div style={{
-        position: "absolute",
-        bottom: 24,
-        left: "50%",
-        transform: "translateX(-50%)",
-        display: "flex",
-        justifyContent: "center",
-      }}>
-        <TPGBottle phase={phase} />
-      </div>
-
-      {/* Spacer so the outer div is tall enough */}
-      <div style={{ height: 280, width: 280 }} />
-    </div>
+    <svg viewBox="0 0 300 100" width="280"
+      style={{ display: "block", overflow: "visible" }}
+      xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="cgl" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stopColor={glowColor} stopOpacity={isScanning ? "0.5" : isError ? "0.15" : "0.28"} />
+          <stop offset="60%"  stopColor={glowColor} stopOpacity={isScanning ? "0.15" : "0.06"} />
+          <stop offset="100%" stopColor={glowColor} stopOpacity="0" />
+        </radialGradient>
+        <linearGradient id="srf" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%"   stopColor="#f2f2f2" />
+          <stop offset="100%" stopColor="#e4e4e4" />
+        </linearGradient>
+      </defs>
+      <rect x="10" y="56" width="280" height="36" rx="6" fill="url(#srf)" />
+      <rect x="10" y="54" width="280" height="5" rx="2.5" fill="#ebebeb" />
+      <ellipse cx="150" cy="68" rx="90" ry="22" fill="url(#cgl)" />
+      <ellipse cx="150" cy="66" rx="78" ry="13"
+        fill="none" stroke={glowColor} strokeWidth="1"
+        opacity={isScanning ? "0.7" : isError ? "0.15" : "0.25"}
+        style={{ animation: pulseAnim }} />
+      <ellipse cx="150" cy="66" rx="64" ry="10.5"
+        fill="none" stroke={circleColor} strokeWidth="1.2"
+        opacity={isScanning ? "0.85" : "0.4"}
+        style={{ animation: isScanning ? "scanRipple 1.4s ease-out infinite 0.25s" : "none" }} />
+      <ellipse cx="150" cy="66" rx="52" ry="8.5"
+        fill={isScanning ? `${glowColor}22` : isError ? "rgba(198,40,40,0.06)" : `${BLUE_SCAN}0e`}
+        stroke={circleColor} strokeWidth="2" />
+      <ellipse cx="150" cy="66" rx="36" ry="5.8"
+        fill="none" stroke={circleColor} strokeWidth="0.75" strokeDasharray="5 3.5" opacity="0.45" />
+      {[0, 90, 180, 270].map((deg) => {
+        const r = Math.PI / 180;
+        const ox = 150, oy = 66, ra = 50, rb = 8;
+        const x1 = ox + (ra - 5) * Math.cos(deg * r), y1 = oy + (rb - 1) * Math.sin(deg * r);
+        const x2 = ox + (ra + 5) * Math.cos(deg * r), y2 = oy + (rb + 1) * Math.sin(deg * r);
+        return <line key={deg} x1={x1} y1={y1} x2={x2} y2={y2} stroke={circleColor} strokeWidth="1.5" opacity="0.55" />;
+      })}
+      {isScanning && (
+        <rect x="98" y="63" width="104" height="2.5" rx="1.25"
+          fill={circleColor} opacity="0.6"
+          style={{ animation: "scanBar 1.3s ease-in-out infinite" }} />
+      )}
+    </svg>
   );
 }
 
-// ─── Scanning bars indicator ──────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// SCANNING INDICATOR
+// ─────────────────────────────────────────────────────────────────────────────
 
 function ScanningIndicator() {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "5px", marginTop: "4px" }}>
       {[0, 0.15, 0.3, 0.45, 0.6].map((delay, i) => (
         <div key={i} style={{
-          width: 4,
-          height: 20,
-          borderRadius: 2,
+          width: 4, height: 20, borderRadius: 2,
           background: BLUE_SCAN,
           animation: "barBounce 0.9s ease-in-out infinite",
           animationDelay: `${delay}s`,
@@ -601,21 +618,17 @@ function ScanningIndicator() {
         }} />
       ))}
       <span style={{
-        marginLeft: "8px",
-        fontSize: "0.78rem",
-        color: BLUE_SCAN,
-        letterSpacing: "0.12em",
-        textTransform: "uppercase" as const,
-        fontWeight: 600,
-        fontFamily: FONT,
-      }}>
-        Scanning
-      </span>
+        marginLeft: "8px", fontSize: "0.78rem", fontFamily: FONT,
+        color: BLUE_SCAN, letterSpacing: "0.18em",
+        textTransform: "uppercase" as const, fontWeight: 600,
+      }}>Scanning</span>
     </div>
   );
 }
 
-// ─── Keyframe animations ──────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// KEYFRAMES + GOOGLE FONTS
+// ─────────────────────────────────────────────────────────────────────────────
 
 const globalKeyframes = `
   @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Semi+Condensed:wght@400;600;700&display=swap');
@@ -625,11 +638,11 @@ const globalKeyframes = `
     50%       { opacity: 0.55; }
   }
   @keyframes scanRipple {
-    0%   { opacity: 0.85; transform: scale(1); }
+    0%   { opacity: 0.85; transform: scale(1);   }
     100% { opacity: 0;    transform: scale(1.4); }
   }
   @keyframes bottleFloat {
-    0%, 100% { transform: translateY(0px); }
+    0%, 100% { transform: translateY(0px);  }
     50%       { transform: translateY(-8px); }
   }
   @keyframes scanBar {
@@ -647,7 +660,9 @@ const globalKeyframes = `
   }
 `;
 
-// ─── Styles — all font-family references use Barlow ──────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// STYLES
+// ─────────────────────────────────────────────────────────────────────────────
 
 const s: Record<string, React.CSSProperties> = {
   root: {
@@ -678,38 +693,32 @@ const s: Record<string, React.CSSProperties> = {
     color: "transparent",
     caretColor: "transparent",
   },
-
-  // Header
   header: {
     width: "100%",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    padding: "2.5rem 2rem 1.5rem",
-    gap: "0.75rem",
+    padding: "2.25rem 2rem 1.5rem",
+    gap: "0.65rem",
     background: "#ffffff",
   },
   tagline: {
-    fontSize: "0.78rem",
+    fontSize: "0.75rem",
     fontFamily: FONT,
     fontWeight: 400,
     color: NAVY_MID,
     letterSpacing: "0.35em",
     textTransform: "uppercase" as const,
     margin: 0,
-    opacity: 0.65,
+    opacity: 0.6,
   },
-
-  // Divider
   divider: {
     width: "100%",
     height: "1px",
     background: `linear-gradient(to right, transparent, ${NAVY_LIGHT}, ${NAVY_LIGHT}, transparent)`,
     flexShrink: 0,
   },
-
-  // Main
   main: {
     flex: 1,
     width: "100%",
@@ -726,8 +735,6 @@ const s: Record<string, React.CSSProperties> = {
     display: "flex",
     justifyContent: "center",
   },
-
-  // Status text
   statusBlock: {
     display: "flex",
     flexDirection: "column",
@@ -762,8 +769,6 @@ const s: Record<string, React.CSSProperties> = {
     margin: 0,
     letterSpacing: "0.04em",
   },
-
-  // Ready badge
   readyBadge: {
     display: "inline-flex",
     alignItems: "center",
@@ -791,8 +796,6 @@ const s: Record<string, React.CSSProperties> = {
     letterSpacing: "0.18em",
     textTransform: "uppercase" as const,
   },
-
-  // Footer
   footer: {
     width: "100%",
     display: "flex",
@@ -810,17 +813,10 @@ const s: Record<string, React.CSSProperties> = {
     letterSpacing: "0.14em",
     textTransform: "uppercase" as const,
   },
-  footerDot: {
-    color: "#cfd8dc",
-    fontSize: "0.68rem",
-  },
-
-  // Admin panel
+  footerDot: { color: "#cfd8dc", fontSize: "0.68rem" },
   adminWrap: {
     position: "fixed" as const,
-    bottom: 0,
-    left: 0,
-    right: 0,
+    bottom: 0, left: 0, right: 0,
     zIndex: 30,
     display: "flex",
     flexDirection: "column",
@@ -845,8 +841,7 @@ const s: Record<string, React.CSSProperties> = {
   },
   adminToggleDash: {
     display: "inline-block",
-    width: 16,
-    height: 2,
+    width: 16, height: 2,
     background: "#b0bec5",
     borderRadius: 1,
   },
@@ -900,7 +895,9 @@ const s: Record<string, React.CSSProperties> = {
   },
 };
 
-// ─── Suspense wrapper required by Next.js 14 for useSearchParams ──────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// SUSPENSE WRAPPER — required by Next.js 14 for useSearchParams
+// ─────────────────────────────────────────────────────────────────────────────
 
 export default function KioskPage() {
   return (
