@@ -440,7 +440,7 @@ function BottleIllustration({ accent }: { accent: string }) {
 
         {/* Brand text in label */}
         <text x="100" y="111" textAnchor="middle"
-          fontFamily="Georgia, serif" fontSize="9" fill="white"
+          fontFamily="'Barlow', 'Barlow Semi Condensed', sans-serif" fontSize="9" fill="white"
           letterSpacing="3">PARFUM</text>
 
         {/* Decorative label lines */}
@@ -482,9 +482,9 @@ function TPGWordmark() {
         <rect x="1.5" y="1.5" width="69" height="53" stroke="#1a237e" strokeWidth="3" fill="none" />
         <rect x="1.5" y="1.5" width="18" height="16" fill="white" />
         <rect x="52.5" y="38.5" width="18" height="16" fill="white" />
-        <text x="7" y="37" fontFamily="Arial, sans-serif" fontSize="26" fontWeight="700" fill="#1a237e" letterSpacing="-1">T</text>
-        <text x="25" y="37" fontFamily="Arial, sans-serif" fontSize="26" fontWeight="700" fill="#1a237e" letterSpacing="-1">P</text>
-        <text x="44" y="37" fontFamily="Arial, sans-serif" fontSize="26" fontWeight="700" fill="#1a237e" letterSpacing="-1">G</text>
+        <text x="7" y="37" fontFamily="'Barlow', sans-serif" fontSize="26" fontWeight="700" fill="#1a237e" letterSpacing="-1">T</text>
+        <text x="25" y="37" fontFamily="'Barlow', sans-serif" fontSize="26" fontWeight="700" fill="#1a237e" letterSpacing="-1">P</text>
+        <text x="44" y="37" fontFamily="'Barlow', sans-serif" fontSize="26" fontWeight="700" fill="#1a237e" letterSpacing="-1">G</text>
       </svg>
       <div className="tpg-words">
         <span>THE PERFUME</span>
@@ -559,13 +559,15 @@ function BottleMiniIcon() {
 // Self-contained styles. No Tailwind required — pure CSS for kiosk reliability.
 
 const pageStyles = `
+  @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Semi+Condensed:wght@400;600;700&display=swap');
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   .kiosk-page {
     min-height: 100dvh;
     background: #ffffff;
     color: #1a237e;
-    font-family: Georgia, 'Times New Roman', serif;
+    font-family: 'Barlow', 'Barlow Semi Condensed', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
 
@@ -594,7 +596,7 @@ const pageStyles = `
     display: flex;
     flex-direction: column;
     gap: 1px;
-    font-family: Georgia, serif;
+    font-family: 'Barlow', 'Barlow Semi Condensed', system-ui, sans-serif;
     font-size: 0.72rem;
     letter-spacing: 0.18em;
     color: #1a237e;
@@ -610,7 +612,7 @@ const pageStyles = `
     border-radius: 100px;
     color: #1a237e;
     text-decoration: none;
-    font-family: system-ui, sans-serif;
+    font-family: 'Barlow', system-ui, sans-serif;
     font-size: 0.82rem;
     font-weight: 500;
     letter-spacing: 0.04em;
@@ -656,7 +658,7 @@ const pageStyles = `
     flex: 1;
   }
   .brand-name {
-    font-family: system-ui, sans-serif;
+    font-family: 'Barlow', system-ui, sans-serif;
     font-size: 0.72rem;
     font-weight: 700;
     letter-spacing: 0.22em;
@@ -665,7 +667,7 @@ const pageStyles = `
     margin-bottom: 0.6rem;
   }
   .perfume-name {
-    font-family: Georgia, serif;
+    font-family: 'Barlow', 'Barlow Semi Condensed', system-ui, sans-serif;
     font-size: clamp(1.5rem, 2.8vw, 2.1rem);
     font-weight: 400;
     color: #0d1b6e;
@@ -678,7 +680,7 @@ const pageStyles = `
     padding: 0.28rem 0.9rem;
     border: 1px solid #c5cae9;
     border-radius: 100px;
-    font-family: system-ui, sans-serif;
+    font-family: 'Barlow', system-ui, sans-serif;
     font-size: 0.75rem;
     color: #283593;
     letter-spacing: 0.06em;
@@ -686,7 +688,7 @@ const pageStyles = `
     background: #fff;
   }
   .description {
-    font-family: system-ui, sans-serif;
+    font-family: 'Barlow', system-ui, sans-serif;
     font-size: 0.93rem;
     color: #546e7a;
     line-height: 1.7;
@@ -707,7 +709,7 @@ const pageStyles = `
     box-shadow: 0 2px 16px rgba(26,35,126,0.06);
   }
   .price-card-heading {
-    font-family: system-ui, sans-serif;
+    font-family: 'Barlow', system-ui, sans-serif;
     font-size: 0.65rem;
     font-weight: 700;
     letter-spacing: 0.22em;
@@ -731,7 +733,7 @@ const pageStyles = `
   }
   .price-size {
     padding: 0.7rem 0;
-    font-family: system-ui, sans-serif;
+    font-family: 'Barlow', system-ui, sans-serif;
     font-size: 0.88rem;
     color: #546e7a;
     letter-spacing: 0.04em;
@@ -739,7 +741,7 @@ const pageStyles = `
   .price-amount {
     padding: 0.7rem 0;
     text-align: right;
-    font-family: Georgia, serif;
+    font-family: 'Barlow', 'Barlow Semi Condensed', system-ui, sans-serif;
     font-size: 1.05rem;
     font-weight: 400;
     color: #1a237e;
@@ -747,7 +749,7 @@ const pageStyles = `
   }
   .price-note {
     margin-top: 0.85rem;
-    font-family: system-ui, sans-serif;
+    font-family: 'Barlow', system-ui, sans-serif;
     font-size: 0.68rem;
     color: #b0bec5;
     letter-spacing: 0.04em;
@@ -760,7 +762,7 @@ const pageStyles = `
     padding: 0.45rem 1rem;
     background: #e8eaf6;
     border-radius: 100px;
-    font-family: system-ui, sans-serif;
+    font-family: 'Barlow', system-ui, sans-serif;
     font-size: 0.75rem;
     font-weight: 500;
     color: #283593;
@@ -779,7 +781,7 @@ const pageStyles = `
     padding: 2.25rem 1.75rem;
   }
   .section-heading {
-    font-family: system-ui, sans-serif;
+    font-family: 'Barlow', system-ui, sans-serif;
     font-size: 0.65rem;
     font-weight: 700;
     letter-spacing: 0.22em;
@@ -822,14 +824,14 @@ const pageStyles = `
     margin-top: 2px;
   }
   .note-tier {
-    font-family: Georgia, serif;
+    font-family: 'Barlow', 'Barlow Semi Condensed', system-ui, sans-serif;
     font-size: 0.97rem;
     color: #1a237e;
     font-weight: 400;
     line-height: 1.2;
   }
   .note-label {
-    font-family: system-ui, sans-serif;
+    font-family: 'Barlow', system-ui, sans-serif;
     font-size: 0.68rem;
     color: #9fa8da;
     letter-spacing: 0.04em;
@@ -845,7 +847,7 @@ const pageStyles = `
     padding: 0.3rem 0.75rem;
     border: 1px solid;
     border-radius: 100px;
-    font-family: system-ui, sans-serif;
+    font-family: 'Barlow', system-ui, sans-serif;
     font-size: 0.78rem;
     font-weight: 500;
     letter-spacing: 0.02em;
@@ -902,14 +904,14 @@ const pageStyles = `
     flex-shrink: 0;
   }
   .similar-idx {
-    font-family: system-ui, sans-serif;
+    font-family: 'Barlow', system-ui, sans-serif;
     font-size: 0.6rem;
     font-weight: 700;
     color: #7986cb;
     letter-spacing: 0.05em;
   }
   .similar-brand {
-    font-family: system-ui, sans-serif;
+    font-family: 'Barlow', system-ui, sans-serif;
     font-size: 0.65rem;
     font-weight: 700;
     letter-spacing: 0.15em;
@@ -918,14 +920,14 @@ const pageStyles = `
     margin-bottom: 2px;
   }
   .similar-name {
-    font-family: Georgia, serif;
+    font-family: 'Barlow', 'Barlow Semi Condensed', system-ui, sans-serif;
     font-size: 0.93rem;
     color: #1a237e;
     line-height: 1.3;
     margin-bottom: 4px;
   }
   .similar-note {
-    font-family: system-ui, sans-serif;
+    font-family: 'Barlow', system-ui, sans-serif;
     font-size: 0.75rem;
     color: #78909c;
     line-height: 1.4;
@@ -949,13 +951,13 @@ const pageStyles = `
   .info-row:last-child { border-bottom: none; }
   .info-row:hover { background: #f8f9ff; }
   .info-label {
-    font-family: system-ui, sans-serif;
+    font-family: 'Barlow', system-ui, sans-serif;
     font-size: 0.78rem;
     color: #90a4ae;
     letter-spacing: 0.04em;
   }
   .info-value {
-    font-family: Georgia, serif;
+    font-family: 'Barlow', 'Barlow Semi Condensed', system-ui, sans-serif;
     font-size: 0.9rem;
     color: #1a237e;
     text-align: right;
@@ -979,7 +981,7 @@ const pageStyles = `
     color: #fff;
     text-decoration: none;
     border-radius: 100px;
-    font-family: system-ui, sans-serif;
+    font-family: 'Barlow', system-ui, sans-serif;
     font-size: 0.9rem;
     font-weight: 500;
     letter-spacing: 0.08em;
