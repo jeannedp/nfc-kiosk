@@ -1,42 +1,43 @@
 // src/app/perfume/[slug]/page.tsx
-// Internal kiosk product page — no ecommerce, no nav, no footer.
-// Product data is hardcoded here for MVP; replace with DB/API calls later.
+// ─────────────────────────────────────────────────────────────────────────────
+// UI ONLY redesign. All types, product data, routing, slug handling,
+// generateStaticParams and navigation logic are 100% unchanged.
+// ─────────────────────────────────────────────────────────────────────────────
 
 import { notFound } from "next/navigation";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ─── Types (unchanged) ────────────────────────────────────────────────────────
 
 interface PriceOption {
-  size: string;   // e.g. "50ml", "100ml"
-  price: number;  // ZAR
+  size: string;
+  price: number;
 }
 
 interface SimilarPerfume {
   name: string;
   brand: string;
-  note: string; // one-line similarity reason
+  note: string;
 }
 
 interface Perfume {
   slug: string;
   brand: string;
   name: string;
-  concentration: string;   // e.g. "Eau de Parfum", "Extrait de Parfum"
-  category: string;        // e.g. "Oriental Woody", "Floral"
+  concentration: string;
+  category: string;
   description: string;
   topNotes: string[];
   heartNotes: string[];
   baseNotes: string[];
-  longevity: string;       // e.g. "8–12 hours"
-  sillage: string;         // e.g. "Moderate", "Heavy"
+  longevity: string;
+  sillage: string;
   prices: PriceOption[];
   similar: SimilarPerfume[];
-  accentColor: string;     // hex — used for decorative tints
-  imageDescription: string;// placeholder text in image area
+  accentColor: string;
+  imageDescription: string;
 }
 
-// ─── Product data ─────────────────────────────────────────────────────────────
-// Replace this array with a DB/API fetch when ready.
+// ─── Product data (unchanged) ─────────────────────────────────────────────────
 
 const PRODUCTS: Perfume[] = [
   {
@@ -166,157 +167,181 @@ const PRODUCTS: Perfume[] = [
   },
 ];
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+// ─── Static params (unchanged) ────────────────────────────────────────────────
 
 export function generateStaticParams() {
   return PRODUCTS.map((p) => ({ slug: p.slug }));
 }
 
+// ─── Page (routing unchanged) ─────────────────────────────────────────────────
+
 export default function PerfumePage({ params }: { params: { slug: string } }) {
   const perfumeData = PRODUCTS.find((p) => p.slug === params.slug);
   if (!perfumeData) notFound();
-  // notFound() throws, so perfumeData is guaranteed defined from here on
   const perfume = perfumeData as Perfume;
 
-  const accent = perfume.accentColor;
-
   return (
-    <div style={s.root}>
-      {/* Ambient tint */}
-      <div style={{ ...s.ambient, background: `radial-gradient(ellipse at 20% 0%, ${accent}22 0%, transparent 60%)` }} />
+    <>
+      <style>{pageStyles}</style>
+      <div className="kiosk-page">
 
-      {/* Header */}
-      <header style={s.header}>
-        <a href="/" style={s.backBtn}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M19 12H5M12 5l-7 7 7 7" />
-          </svg>
-          Scan another perfume
-        </a>
-        <div style={s.headerLogo}>
-          <span style={s.headerLogoText}>The Perfume Gallery</span>
-        </div>
-      </header>
-
-      <main style={s.main}>
-        {/* Hero */}
-        <section style={s.hero}>
-          {/* Image placeholder */}
-          <div style={{ ...s.imagePlaceholder, borderColor: `${accent}55` }}>
-            <div style={{ ...s.imagePlaceholderInner, background: `${accent}18` }}>
-              <BottleIllustration accent={accent} />
-              <p style={{ ...s.imagePlaceholderLabel, color: `${accent}cc` }}>
-                {perfume.imageDescription}
-              </p>
-            </div>
-            {/* Replace above div with: <Image src={perfume.imageUrl} alt={perfume.name} fill style={{objectFit:'contain'}} /> */}
+        {/* ── Top nav bar ─────────────────────────────────────────────────── */}
+        <nav className="topbar">
+          <div className="topbar-inner">
+            <TPGWordmark />
+            <a href="/" className="back-btn">
+              <BackArrowIcon />
+              Back to Scanner
+            </a>
           </div>
+        </nav>
 
-          {/* Info */}
-          <div style={s.heroInfo}>
-            <p style={{ ...s.brandLabel, color: accent }}>{perfume.brand}</p>
-            <h1 style={s.perfumeName}>{perfume.name}</h1>
-            <div style={s.badgeRow}>
-              <span style={s.badge}>{perfume.concentration}</span>
-              <span style={s.badge}>{perfume.category}</span>
-            </div>
-            <p style={s.description}>{perfume.description}</p>
+        {/* ── TOP SECTION: Bottle + Identity LEFT | Price RIGHT ───────────── */}
+        <section className="top-section">
+          <div className="top-inner">
 
-            {/* Prices */}
-            <div style={s.priceSection}>
-              <p style={s.sectionLabel}>Available sizes</p>
-              <div style={s.priceGrid}>
-                {perfume.prices.map((p) => (
-                  <div key={p.size} style={{ ...s.priceCard, borderColor: `${accent}40` }}>
-                    <span style={s.priceSize}>{p.size}</span>
-                    <span style={{ ...s.priceAmount, color: accent }}>
-                      R {p.price.toLocaleString()}
-                    </span>
-                  </div>
-                ))}
+            {/* LEFT: illustration + identity */}
+            <div className="identity-col">
+              <BottleIllustration accent={perfume.accentColor} />
+              <div className="identity-text">
+                <p className="brand-name">{perfume.brand}</p>
+                <h1 className="perfume-name">{perfume.name}</h1>
+                <span className="concentration-badge">{perfume.concentration}</span>
+                <p className="description">{perfume.description}</p>
               </div>
-              <p style={s.priceNote}>All prices include VAT · Ask staff for availability</p>
+            </div>
+
+            {/* RIGHT: price table */}
+            <div className="price-col">
+              <div className="price-card">
+                <p className="price-card-heading">PRICE</p>
+                <table className="price-table">
+                  <tbody>
+                    {perfume.prices.map((p) => (
+                      <tr key={p.size} className="price-row">
+                        <td className="price-size">{p.size}</td>
+                        <td className="price-amount">R{p.price.toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <p className="price-note">All prices include VAT</p>
+              </div>
+              <div className="category-chip">
+                <CategoryIcon />
+                {perfume.category}
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        {/* ── DIVIDER ─────────────────────────────────────────────────────── */}
+        <div className="section-divider" />
+
+        {/* ── MIDDLE SECTION: Fragrance Notes ─────────────────────────────── */}
+        <section className="notes-section">
+          <div className="section-inner">
+            <h2 className="section-heading">Fragrance Notes</h2>
+            <div className="notes-grid">
+              <NoteCard
+                tier="Top Notes"
+                icon={<TopNoteIcon />}
+                label="The opening impression"
+                notes={perfume.topNotes}
+                accent={perfume.accentColor}
+              />
+              <NoteCard
+                tier="Heart Notes"
+                icon={<HeartNoteIcon />}
+                label="The character"
+                notes={perfume.heartNotes}
+                accent={perfume.accentColor}
+              />
+              <NoteCard
+                tier="Base Notes"
+                icon={<BaseNoteIcon />}
+                label="The lasting impression"
+                notes={perfume.baseNotes}
+                accent={perfume.accentColor}
+              />
             </div>
           </div>
         </section>
 
-        {/* Notes */}
-        <section style={s.notesSection}>
-          <h2 style={s.sectionHeading}>Fragrance Notes</h2>
-          <div style={s.notesGrid}>
-            <NoteGroup label="Top notes" notes={perfume.topNotes} accent={accent} position="top" />
-            <NoteGroup label="Heart notes" notes={perfume.heartNotes} accent={accent} position="heart" />
-            <NoteGroup label="Base notes" notes={perfume.baseNotes} accent={accent} position="base" />
-          </div>
-        </section>
+        {/* ── DIVIDER ─────────────────────────────────────────────────────── */}
+        <div className="section-divider" />
 
-        {/* Details */}
-        <section style={s.detailsSection}>
-          <h2 style={s.sectionHeading}>More information</h2>
-          <div style={s.detailsGrid}>
-            <DetailRow label="Concentration" value={perfume.concentration} />
-            <DetailRow label="Category" value={perfume.category} />
-            <DetailRow label="Longevity" value={perfume.longevity} />
-            <DetailRow label="Sillage" value={perfume.sillage} />
-          </div>
-        </section>
+        {/* ── BOTTOM SECTION: Smells Like + More Info ──────────────────────── */}
+        <section className="bottom-section">
+          <div className="section-inner">
+            <div className="bottom-grid">
 
-        {/* Similar */}
-        <section style={s.similarSection}>
-          <h2 style={s.sectionHeading}>Smells like…</h2>
-          <p style={s.similarSubtext}>You might also enjoy these fragrances</p>
-          <div style={s.similarGrid}>
-            {perfume.similar.map((sim) => (
-              <div key={sim.name} style={{ ...s.similarCard, borderColor: `${accent}30` }}>
-                <div style={{ ...s.similarDot, background: `${accent}33`, borderColor: `${accent}66` }}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="1.5">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" />
-                    <path d="M8 12s1.5 2 4 2 4-2 4-2" />
-                    <line x1="9" y1="9" x2="9.01" y2="9" strokeWidth="2" />
-                    <line x1="15" y1="9" x2="15.01" y2="9" strokeWidth="2" />
-                  </svg>
-                </div>
-                <div>
-                  <p style={s.simBrand}>{sim.brand}</p>
-                  <p style={s.simName}>{sim.name}</p>
-                  <p style={s.simNote}>{sim.note}</p>
+              {/* Smells Like */}
+              <div className="smells-col">
+                <h2 className="section-heading">Smells Like</h2>
+                <div className="similar-list">
+                  {perfume.similar.map((s, i) => (
+                    <SimilarCard key={i} sim={s} index={i} />
+                  ))}
                 </div>
               </div>
-            ))}
+
+              {/* More Information */}
+              <div className="info-col">
+                <h2 className="section-heading">More Information</h2>
+                <div className="info-card">
+                  <InfoRow label="Category" value={perfume.category} />
+                  <InfoRow label="Concentration" value={perfume.concentration} />
+                  <InfoRow label="Longevity" value={perfume.longevity} />
+                  <InfoRow label="Sillage" value={perfume.sillage} />
+                </div>
+              </div>
+
+            </div>
           </div>
         </section>
 
-        {/* Bottom back button */}
-        <div style={s.bottomBack}>
-          <a href="/" style={{ ...s.bottomBackBtn, borderColor: `${accent}50`, color: accent }}>
-            ← Scan another perfume
+        {/* ── Back to scanner ──────────────────────────────────────────────── */}
+        <section className="back-section">
+          <a href="/" className="back-large-btn">
+            <BackArrowIcon />
+            Scan Another Perfume
           </a>
-        </div>
-      </main>
-    </div>
+        </section>
+
+      </div>
+    </>
   );
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function NoteGroup({
-  label, notes, accent, position,
+function NoteCard({
+  tier, icon, label, notes, accent,
 }: {
+  tier: string;
+  icon: React.ReactNode;
   label: string;
   notes: string[];
   accent: string;
-  position: "top" | "heart" | "base";
 }) {
-  const icons = { top: "✦", heart: "❋", base: "◆" };
   return (
-    <div style={s.noteGroup}>
-      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.75rem" }}>
-        <span style={{ color: accent, fontSize: "0.85rem" }}>{icons[position]}</span>
-        <span style={s.noteGroupLabel}>{label}</span>
+    <div className="note-card">
+      <div className="note-card-header">
+        <span className="note-icon">{icon}</span>
+        <div>
+          <p className="note-tier">{tier}</p>
+          <p className="note-label">{label}</p>
+        </div>
       </div>
-      <div style={s.notePillRow}>
+      <div className="note-pills">
         {notes.map((n) => (
-          <span key={n} style={{ ...s.notePill, background: `${accent}18`, color: `${accent}ee`, borderColor: `${accent}35` }}>
+          <span
+            key={n}
+            className="note-pill"
+            style={{ borderColor: `${accent}50`, color: accent }}
+          >
             {n}
           </span>
         ))}
@@ -325,305 +350,680 @@ function NoteGroup({
   );
 }
 
-function DetailRow({ label, value }: { label: string; value: string }) {
+function SimilarCard({ sim, index }: { sim: SimilarPerfume; index: number }) {
+  const letters = ["A", "B", "C"];
   return (
-    <div style={s.detailRow}>
-      <span style={s.detailLabel}>{label}</span>
-      <span style={s.detailValue}>{value}</span>
+    <div className="similar-card">
+      <div className="similar-avatar">
+        <BottleMiniIcon />
+        <span className="similar-idx">{letters[index]}</span>
+      </div>
+      <div className="similar-body">
+        <p className="similar-brand">{sim.brand}</p>
+        <p className="similar-name">{sim.name}</p>
+        <p className="similar-note">{sim.note}</p>
+      </div>
     </div>
   );
 }
 
-function BottleIllustration({ accent }: { accent: string }) {
+function InfoRow({ label, value }: { label: string; value: string }) {
   return (
-    <svg viewBox="0 0 120 200" width="110" height="185" xmlns="http://www.w3.org/2000/svg">
-      {/* Cap */}
-      <rect x="42" y="10" width="36" height="16" rx="5" fill={accent} opacity="0.85" />
-      {/* Neck */}
-      <rect x="50" y="26" width="20" height="28" rx="3" fill={accent} opacity="0.6" />
-      {/* Collar */}
-      <rect x="38" y="52" width="44" height="9" rx="3" fill={accent} opacity="0.75" />
-      {/* Body */}
-      <rect x="22" y="61" width="76" height="118" rx="14"
-        fill="white" fillOpacity="0.06"
-        stroke={accent} strokeOpacity="0.5" strokeWidth="1.5" />
-      {/* Liquid */}
-      <rect x="25" y="90" width="70" height="87" rx="10"
-        fill={accent} fillOpacity="0.15" />
-      {/* Label bg */}
-      <rect x="30" y="78" width="60" height="72" rx="6"
-        fill="white" fillOpacity="0.07"
-        stroke="white" strokeOpacity="0.12" strokeWidth="1" />
-      {/* Label lines */}
-      <rect x="38" y="86" width="44" height="3" rx="1.5" fill="white" fillOpacity="0.25" />
-      <rect x="42" y="93" width="36" height="2" rx="1" fill="white" fillOpacity="0.15" />
-      <rect x="42" y="98" width="36" height="2" rx="1" fill="white" fillOpacity="0.15" />
-      <rect x="44" y="103" width="30" height="2" rx="1" fill="white" fillOpacity="0.12" />
-      {/* Highlight */}
-      <rect x="25" y="65" width="12" height="60" rx="6"
-        fill="white" fillOpacity="0.08" />
+    <div className="info-row">
+      <span className="info-label">{label}</span>
+      <span className="info-value">{value}</span>
+    </div>
+  );
+}
+
+// ─── Bottle illustration ──────────────────────────────────────────────────────
+
+function BottleIllustration({ accent }: { accent: string }) {
+  // Clamp accent for use in SVG fills with opacity variants
+  return (
+    <div className="bottle-wrap">
+      <svg
+        viewBox="0 0 200 320"
+        width="160"
+        height="256"
+        xmlns="http://www.w3.org/2000/svg"
+        className="bottle-svg"
+      >
+        <defs>
+          <linearGradient id={`bodyGrad-${accent.replace("#","")}`} x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#e8eaf6" />
+            <stop offset="40%" stopColor="#ffffff" />
+            <stop offset="100%" stopColor="#c5cae9" />
+          </linearGradient>
+          <linearGradient id={`capGrad-${accent.replace("#","")}`} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#37474f" />
+            <stop offset="100%" stopColor="#1a237e" />
+          </linearGradient>
+        </defs>
+
+        {/* Shadow */}
+        <ellipse cx="100" cy="314" rx="55" ry="7" fill="#e0e0e0" />
+
+        {/* Cap */}
+        <rect x="72" y="14" width="56" height="20" rx="5"
+          fill={`url(#capGrad-${accent.replace("#","")})`} />
+        <rect x="75" y="12" width="50" height="7" rx="3.5" fill="#546e7a" />
+
+        {/* Neck */}
+        <rect x="82" y="34" width="36" height="34" rx="4"
+          fill="#b0bec5" />
+        <rect x="85" y="34" width="12" height="34" rx="3"
+          fill="#cfd8dc" opacity="0.7" />
+
+        {/* Collar */}
+        <rect x="68" y="66" width="64" height="12" rx="4"
+          fill="#1a237e" />
+
+        {/* Body */}
+        <rect x="42" y="78" width="116" height="220" rx="16"
+          fill={`url(#bodyGrad-${accent.replace("#","")})`}
+          stroke="#c5cae9" strokeWidth="1" />
+
+        {/* Liquid */}
+        <rect x="45" y="148" width="110" height="148" rx="12"
+          fill={accent} opacity="0.13" />
+        <rect x="45" y="146" width="110" height="4" rx="2"
+          fill={accent} opacity="0.18" />
+
+        {/* Label panel */}
+        <rect x="54" y="90" width="92" height="130" rx="6"
+          fill="white" stroke="#e8eaf6" strokeWidth="1.5" />
+
+        {/* Label top navy bar */}
+        <rect x="54" y="90" width="92" height="30" rx="6" fill="#1a237e" />
+        <rect x="54" y="108" width="92" height="12" rx="0" fill="#1a237e" />
+
+        {/* Brand text in label */}
+        <text x="100" y="111" textAnchor="middle"
+          fontFamily="Georgia, serif" fontSize="9" fill="white"
+          letterSpacing="3">PARFUM</text>
+
+        {/* Decorative label lines */}
+        <line x1="68" y1="132" x2="132" y2="132"
+          stroke="#e8eaf6" strokeWidth="1" />
+        <rect x="68" y="137" width="64" height="2.5" rx="1.25"
+          fill="#e8eaf6" />
+        <rect x="72" y="143" width="56" height="2" rx="1"
+          fill="#e8eaf6" opacity="0.7" />
+        <rect x="72" y="149" width="48" height="2" rx="1"
+          fill="#e8eaf6" opacity="0.5" />
+        <rect x="76" y="155" width="36" height="2" rx="1"
+          fill="#e8eaf6" opacity="0.4" />
+
+        {/* Accent colour swatch at bottom of label */}
+        <rect x="80" y="168" width="40" height="4" rx="2"
+          fill={accent} opacity="0.4" />
+        <rect x="85" y="175" width="30" height="3" rx="1.5"
+          fill={accent} opacity="0.25" />
+
+        {/* Body highlight */}
+        <rect x="44" y="82" width="14" height="120" rx="7"
+          fill="white" opacity="0.35" />
+
+        {/* Bottom rim */}
+        <rect x="42" y="288" width="116" height="10" rx="8"
+          fill="#c5cae9" />
+      </svg>
+    </div>
+  );
+}
+
+// ─── TPG wordmark ─────────────────────────────────────────────────────────────
+
+function TPGWordmark() {
+  return (
+    <div className="tpg-mark">
+      <svg width="48" height="38" viewBox="0 0 72 56" fill="none">
+        <rect x="1.5" y="1.5" width="69" height="53" stroke="#1a237e" strokeWidth="3" fill="none" />
+        <rect x="1.5" y="1.5" width="18" height="16" fill="white" />
+        <rect x="52.5" y="38.5" width="18" height="16" fill="white" />
+        <text x="7" y="37" fontFamily="Arial, sans-serif" fontSize="26" fontWeight="700" fill="#1a237e" letterSpacing="-1">T</text>
+        <text x="25" y="37" fontFamily="Arial, sans-serif" fontSize="26" fontWeight="700" fill="#1a237e" letterSpacing="-1">P</text>
+        <text x="44" y="37" fontFamily="Arial, sans-serif" fontSize="26" fontWeight="700" fill="#1a237e" letterSpacing="-1">G</text>
+      </svg>
+      <div className="tpg-words">
+        <span>THE PERFUME</span>
+        <span>GALLERY</span>
+      </div>
+    </div>
+  );
+}
+
+// ─── Icons ────────────────────────────────────────────────────────────────────
+
+function BackArrowIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M19 12H5M12 5l-7 7 7 7" />
     </svg>
   );
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
+function TopNoteIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+      <path d="M12 2L8 8h8l-4-6z" />
+      <circle cx="12" cy="14" r="4" />
+    </svg>
+  );
+}
 
-const s: Record<string, React.CSSProperties> = {
-  root: {
-    minHeight: "100dvh",
-    background: "#0d1117",
-    color: "#f0e6d0",
-    fontFamily: "'Segoe UI', system-ui, -apple-system, sans-serif",
-    WebkitFontSmoothing: "antialiased",
-    position: "relative",
-    overflowX: "hidden",
-  },
-  ambient: {
-    position: "fixed",
-    inset: 0,
-    pointerEvents: "none",
-    zIndex: 0,
-  },
-  // Header
-  header: {
-    position: "sticky",
-    top: 0,
-    zIndex: 10,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: "0 2rem",
-    height: 64,
-    background: "rgba(13,17,23,0.92)",
-    borderBottom: "1px solid rgba(200,169,110,0.12)",
-    backdropFilter: "blur(16px)",
-  },
-  backBtn: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "0.5rem",
-    padding: "0.55rem 1.25rem",
-    background: "rgba(255,255,255,0.05)",
-    border: "1px solid rgba(200,169,110,0.25)",
-    borderRadius: "2rem",
-    color: "#c8a96e",
-    textDecoration: "none",
-    fontSize: "0.88rem",
-    fontWeight: 500,
-    letterSpacing: "0.02em",
-    transition: "background 0.2s",
-    cursor: "pointer",
-  },
-  headerLogo: {},
-  headerLogoText: {
-    fontFamily: "'Georgia', 'Times New Roman', serif",
-    fontSize: "0.9rem",
-    letterSpacing: "0.15em",
-    textTransform: "uppercase",
-    color: "rgba(200,169,110,0.55)",
-  },
-  // Main
-  main: {
-    maxWidth: 960,
-    margin: "0 auto",
-    padding: "2rem 1.5rem 4rem",
-    position: "relative",
-    zIndex: 1,
-  },
-  // Hero
-  hero: {
-    display: "grid",
-    gridTemplateColumns: "280px 1fr",
-    gap: "3rem",
-    alignItems: "start",
-    marginBottom: "3rem",
-  },
-  imagePlaceholder: {
-    borderRadius: "1.25rem",
-    border: "1px solid",
-    overflow: "hidden",
-    aspectRatio: "3/4",
-    position: "relative",
-  },
-  imagePlaceholderInner: {
-    width: "100%",
-    height: "100%",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "1rem",
-    padding: "1.5rem",
-  },
-  imagePlaceholderLabel: {
-    fontSize: "0.75rem",
-    letterSpacing: "0.08em",
-    textAlign: "center",
-    lineHeight: 1.4,
-  },
-  heroInfo: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "1rem",
-    paddingTop: "0.5rem",
-  },
-  brandLabel: {
-    fontSize: "0.82rem",
-    fontWeight: 700,
-    letterSpacing: "0.18em",
-    textTransform: "uppercase",
-  },
-  perfumeName: {
-    fontSize: "clamp(1.5rem, 3vw, 2.1rem)",
-    fontFamily: "'Georgia', 'Times New Roman', serif",
-    fontWeight: 400,
-    lineHeight: 1.25,
-    color: "#f0e6d0",
-    letterSpacing: "0.01em",
-  },
-  badgeRow: { display: "flex", flexWrap: "wrap" as const, gap: "0.5rem" },
-  badge: {
-    padding: "0.3rem 0.85rem",
-    background: "rgba(255,255,255,0.06)",
-    border: "1px solid rgba(255,255,255,0.1)",
-    borderRadius: "999px",
-    fontSize: "0.78rem",
-    color: "rgba(240,230,208,0.65)",
-    letterSpacing: "0.04em",
-  },
-  description: {
-    fontSize: "0.97rem",
-    color: "rgba(240,230,208,0.65)",
-    lineHeight: 1.7,
-    maxWidth: 520,
-  },
-  // Prices
-  priceSection: { marginTop: "0.5rem" },
-  sectionLabel: {
-    fontSize: "0.75rem",
-    letterSpacing: "0.14em",
-    textTransform: "uppercase",
-    color: "rgba(240,230,208,0.4)",
-    marginBottom: "0.75rem",
-  },
-  priceGrid: { display: "flex", gap: "0.75rem", flexWrap: "wrap" as const },
-  priceCard: {
-    display: "flex",
-    flexDirection: "column" as const,
-    alignItems: "center",
-    padding: "0.85rem 1.5rem",
-    background: "rgba(255,255,255,0.04)",
-    border: "1px solid",
-    borderRadius: "0.85rem",
-    minWidth: 100,
-    gap: "0.3rem",
-  },
-  priceSize: { fontSize: "0.82rem", color: "rgba(240,230,208,0.5)", letterSpacing: "0.05em" },
-  priceAmount: { fontSize: "1.35rem", fontWeight: 700, letterSpacing: "-0.01em" },
-  priceNote: {
-    marginTop: "0.75rem",
-    fontSize: "0.75rem",
-    color: "rgba(240,230,208,0.3)",
-    letterSpacing: "0.02em",
-  },
-  // Notes
-  notesSection: {
-    padding: "2rem",
-    background: "rgba(255,255,255,0.025)",
-    border: "1px solid rgba(255,255,255,0.06)",
-    borderRadius: "1.25rem",
-    marginBottom: "2rem",
-  },
-  sectionHeading: {
-    fontFamily: "'Georgia', 'Times New Roman', serif",
-    fontWeight: 400,
-    fontSize: "1.2rem",
-    letterSpacing: "0.04em",
-    color: "rgba(240,230,208,0.75)",
-    marginBottom: "1.5rem",
-  },
-  notesGrid: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1.5rem" },
-  noteGroup: {},
-  noteGroupLabel: {
-    fontSize: "0.78rem",
-    letterSpacing: "0.1em",
-    textTransform: "uppercase",
-    color: "rgba(240,230,208,0.45)",
-  },
-  notePillRow: { display: "flex", flexWrap: "wrap" as const, gap: "0.4rem" },
-  notePill: {
-    padding: "0.35rem 0.75rem",
-    borderRadius: "999px",
-    border: "1px solid",
-    fontSize: "0.82rem",
-    letterSpacing: "0.02em",
-    fontWeight: 500,
-  },
-  // Details
-  detailsSection: {
-    padding: "2rem",
-    background: "rgba(255,255,255,0.025)",
-    border: "1px solid rgba(255,255,255,0.06)",
-    borderRadius: "1.25rem",
-    marginBottom: "2rem",
-  },
-  detailsGrid: { display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "0" },
-  detailRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    padding: "0.85rem 0",
-    borderBottom: "1px solid rgba(255,255,255,0.05)",
-  },
-  detailLabel: { fontSize: "0.88rem", color: "rgba(240,230,208,0.4)", letterSpacing: "0.02em" },
-  detailValue: { fontSize: "0.88rem", color: "rgba(240,230,208,0.8)", fontWeight: 500 },
-  // Similar
-  similarSection: {
-    padding: "2rem",
-    background: "rgba(255,255,255,0.025)",
-    border: "1px solid rgba(255,255,255,0.06)",
-    borderRadius: "1.25rem",
-    marginBottom: "2rem",
-  },
-  similarSubtext: {
-    fontSize: "0.88rem",
-    color: "rgba(240,230,208,0.4)",
-    marginTop: "-1rem",
-    marginBottom: "1.5rem",
-  },
-  similarGrid: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1rem" },
-  similarCard: {
-    display: "flex",
-    gap: "1rem",
-    padding: "1.1rem",
-    background: "rgba(255,255,255,0.03)",
-    border: "1px solid",
-    borderRadius: "1rem",
-    alignItems: "flex-start",
-  },
-  similarDot: {
-    width: 40,
-    height: 40,
-    borderRadius: "50%",
-    border: "1px solid",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-  },
-  simBrand: { fontSize: "0.72rem", color: "rgba(240,230,208,0.4)", letterSpacing: "0.08em", textTransform: "uppercase" },
-  simName: { fontSize: "0.9rem", color: "#f0e6d0", fontWeight: 500, marginTop: "0.2rem", lineHeight: 1.3 },
-  simNote: { fontSize: "0.78rem", color: "rgba(240,230,208,0.45)", marginTop: "0.3rem", lineHeight: 1.4 },
-  // Bottom back
-  bottomBack: { display: "flex", justifyContent: "center", paddingTop: "1rem" },
-  bottomBackBtn: {
-    display: "inline-block",
-    padding: "0.9rem 2.5rem",
-    border: "1px solid",
-    borderRadius: "2rem",
-    textDecoration: "none",
-    fontSize: "1rem",
-    fontWeight: 500,
-    letterSpacing: "0.04em",
-    cursor: "pointer",
-  },
-};
+function HeartNoteIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+    </svg>
+  );
+}
+
+function BaseNoteIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+      <ellipse cx="12" cy="16" rx="6" ry="3" />
+      <path d="M6 16V8a6 6 0 0 1 12 0v8" />
+    </svg>
+  );
+}
+
+function CategoryIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+      <line x1="7" y1="7" x2="7.01" y2="7" strokeWidth="3" />
+    </svg>
+  );
+}
+
+function BottleMiniIcon() {
+  return (
+    <svg width="22" height="32" viewBox="0 0 22 32" fill="none"
+      stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="7" y="1" width="8" height="5" rx="2" />
+      <rect x="9" y="6" width="4" height="5" rx="1" />
+      <rect x="3" y="11" width="16" height="20" rx="4" />
+    </svg>
+  );
+}
+
+// ─── CSS ──────────────────────────────────────────────────────────────────────
+// Self-contained styles. No Tailwind required — pure CSS for kiosk reliability.
+
+const pageStyles = `
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .kiosk-page {
+    min-height: 100dvh;
+    background: #ffffff;
+    color: #1a237e;
+    font-family: Georgia, 'Times New Roman', serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Topbar ─────────────────────────────────────────────────────────────── */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: #ffffff;
+    border-bottom: 1px solid #e8eaf6;
+  }
+  .topbar-inner {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0.85rem 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .tpg-mark {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .tpg-words {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    font-family: Georgia, serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    color: #1a237e;
+    line-height: 1.25;
+    text-transform: uppercase;
+  }
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.55rem 1.25rem;
+    border: 1.5px solid #c5cae9;
+    border-radius: 100px;
+    color: #1a237e;
+    text-decoration: none;
+    font-family: system-ui, sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .back-btn:hover {
+    background: #e8eaf6;
+    border-color: #1a237e;
+  }
+
+  /* ── Top section ────────────────────────────────────────────────────────── */
+  .top-section {
+    background: #fafafa;
+    border-bottom: 1px solid #e8eaf6;
+  }
+  .top-inner {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2.5rem 1.75rem;
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 2.5rem;
+    align-items: start;
+  }
+  .identity-col {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+  }
+  .bottle-wrap {
+    flex-shrink: 0;
+  }
+  .bottle-svg {
+    display: block;
+    filter: drop-shadow(0 8px 24px rgba(26,35,126,0.12));
+    transition: transform 0.4s ease;
+  }
+  .bottle-svg:hover {
+    transform: translateY(-4px) scale(1.02);
+  }
+  .identity-text {
+    padding-top: 0.5rem;
+    flex: 1;
+  }
+  .brand-name {
+    font-family: system-ui, sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #1565c0;
+    margin-bottom: 0.6rem;
+  }
+  .perfume-name {
+    font-family: Georgia, serif;
+    font-size: clamp(1.5rem, 2.8vw, 2.1rem);
+    font-weight: 400;
+    color: #0d1b6e;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    margin-bottom: 0.85rem;
+  }
+  .concentration-badge {
+    display: inline-block;
+    padding: 0.28rem 0.9rem;
+    border: 1px solid #c5cae9;
+    border-radius: 100px;
+    font-family: system-ui, sans-serif;
+    font-size: 0.75rem;
+    color: #283593;
+    letter-spacing: 0.06em;
+    margin-bottom: 1rem;
+    background: #fff;
+  }
+  .description {
+    font-family: system-ui, sans-serif;
+    font-size: 0.93rem;
+    color: #546e7a;
+    line-height: 1.7;
+    max-width: 420px;
+  }
+
+  /* ── Price card ─────────────────────────────────────────────────────────── */
+  .price-col {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .price-card {
+    background: #ffffff;
+    border: 1.5px solid #e8eaf6;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 16px rgba(26,35,126,0.06);
+  }
+  .price-card-heading {
+    font-family: system-ui, sans-serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #9fa8da;
+    margin-bottom: 1rem;
+  }
+  .price-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .price-row {
+    border-bottom: 1px solid #f3f4fb;
+    transition: background 0.15s;
+  }
+  .price-row:last-child {
+    border-bottom: none;
+  }
+  .price-row:hover {
+    background: #f5f7ff;
+  }
+  .price-size {
+    padding: 0.7rem 0;
+    font-family: system-ui, sans-serif;
+    font-size: 0.88rem;
+    color: #546e7a;
+    letter-spacing: 0.04em;
+  }
+  .price-amount {
+    padding: 0.7rem 0;
+    text-align: right;
+    font-family: Georgia, serif;
+    font-size: 1.05rem;
+    font-weight: 400;
+    color: #1a237e;
+    letter-spacing: -0.01em;
+  }
+  .price-note {
+    margin-top: 0.85rem;
+    font-family: system-ui, sans-serif;
+    font-size: 0.68rem;
+    color: #b0bec5;
+    letter-spacing: 0.04em;
+    text-align: right;
+  }
+  .category-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.45rem 1rem;
+    background: #e8eaf6;
+    border-radius: 100px;
+    font-family: system-ui, sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #283593;
+    letter-spacing: 0.04em;
+    align-self: flex-start;
+  }
+
+  /* ── Section divider ────────────────────────────────────────────────────── */
+  .section-divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, #e8eaf6 20%, #e8eaf6 80%, transparent);
+  }
+  .section-inner {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2.25rem 1.75rem;
+  }
+  .section-heading {
+    font-family: system-ui, sans-serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #9fa8da;
+    margin-bottom: 1.25rem;
+  }
+
+  /* ── Notes section ──────────────────────────────────────────────────────── */
+  .notes-section { background: #fff; }
+  .notes-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+  .note-card {
+    background: #fafbff;
+    border: 1.5px solid #e8eaf6;
+    border-radius: 12px;
+    padding: 1.25rem 1.25rem 1.4rem;
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.25s;
+  }
+  .note-card:hover {
+    border-color: #c5cae9;
+    box-shadow: 0 4px 20px rgba(26,35,126,0.07);
+    transform: translateY(-2px);
+  }
+  .note-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 1rem;
+    padding-bottom: 0.85rem;
+    border-bottom: 1px solid #eef0fb;
+  }
+  .note-icon {
+    color: #1a237e;
+    opacity: 0.6;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .note-tier {
+    font-family: Georgia, serif;
+    font-size: 0.97rem;
+    color: #1a237e;
+    font-weight: 400;
+    line-height: 1.2;
+  }
+  .note-label {
+    font-family: system-ui, sans-serif;
+    font-size: 0.68rem;
+    color: #9fa8da;
+    letter-spacing: 0.04em;
+    margin-top: 2px;
+  }
+  .note-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .note-pill {
+    display: inline-block;
+    padding: 0.3rem 0.75rem;
+    border: 1px solid;
+    border-radius: 100px;
+    font-family: system-ui, sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    background: white;
+    transition: background 0.2s, transform 0.15s;
+    cursor: default;
+  }
+  .note-pill:hover {
+    background: #f5f7ff;
+    transform: scale(1.04);
+  }
+
+  /* ── Bottom section ─────────────────────────────────────────────────────── */
+  .bottom-section { background: #fafafa; }
+  .bottom-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.5rem;
+    align-items: start;
+  }
+
+  /* Similar */
+  .similar-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .similar-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem 1.1rem;
+    background: #fff;
+    border: 1.5px solid #e8eaf6;
+    border-radius: 12px;
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.25s;
+  }
+  .similar-card:hover {
+    border-color: #c5cae9;
+    box-shadow: 0 4px 16px rgba(26,35,126,0.07);
+    transform: translateX(3px);
+  }
+  .similar-avatar {
+    width: 48px;
+    height: 56px;
+    border-radius: 8px;
+    background: #e8eaf6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    color: #3949ab;
+    flex-shrink: 0;
+  }
+  .similar-idx {
+    font-family: system-ui, sans-serif;
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: #7986cb;
+    letter-spacing: 0.05em;
+  }
+  .similar-brand {
+    font-family: system-ui, sans-serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #9fa8da;
+    margin-bottom: 2px;
+  }
+  .similar-name {
+    font-family: Georgia, serif;
+    font-size: 0.93rem;
+    color: #1a237e;
+    line-height: 1.3;
+    margin-bottom: 4px;
+  }
+  .similar-note {
+    font-family: system-ui, sans-serif;
+    font-size: 0.75rem;
+    color: #78909c;
+    line-height: 1.4;
+  }
+
+  /* Info card */
+  .info-card {
+    background: #fff;
+    border: 1.5px solid #e8eaf6;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.9rem 1.25rem;
+    border-bottom: 1px solid #f3f4fb;
+    transition: background 0.15s;
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-row:hover { background: #f8f9ff; }
+  .info-label {
+    font-family: system-ui, sans-serif;
+    font-size: 0.78rem;
+    color: #90a4ae;
+    letter-spacing: 0.04em;
+  }
+  .info-value {
+    font-family: Georgia, serif;
+    font-size: 0.9rem;
+    color: #1a237e;
+    text-align: right;
+    max-width: 55%;
+  }
+
+  /* ── Back button ────────────────────────────────────────────────────────── */
+  .back-section {
+    display: flex;
+    justify-content: center;
+    padding: 2rem 1.75rem 3rem;
+    background: #fff;
+    border-top: 1px solid #e8eaf6;
+  }
+  .back-large-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 1rem 2.75rem;
+    background: #1a237e;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 100px;
+    font-family: system-ui, sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 20px rgba(26,35,126,0.25);
+  }
+  .back-large-btn:hover {
+    background: #283593;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(26,35,126,0.3);
+  }
+  .back-large-btn:active {
+    transform: translateY(0);
+  }
+
+  /* ── Portrait tablet responsive ─────────────────────────────────────────── */
+  @media (max-width: 700px) {
+    .top-inner {
+      grid-template-columns: 1fr;
+      gap: 1.75rem;
+    }
+    .identity-col {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    .description {
+      max-width: 100%;
+    }
+    .price-col {
+      align-items: center;
+    }
+    .price-card {
+      width: 100%;
+      max-width: 340px;
+    }
+    .notes-grid {
+      grid-template-columns: 1fr;
+    }
+    .bottom-grid {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+  }
+`;
+
