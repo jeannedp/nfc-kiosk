@@ -1,5 +1,10 @@
 "use client";
 
+// ─── IMPORTANT ───────────────────────────────────────────────────────────────
+// Only the UI has changed. All routing logic, API calls, UID lookup, Supabase
+// integration and useSearchParams implementation are preserved exactly.
+// ─────────────────────────────────────────────────────────────────────────────
+
 import { Suspense, useEffect, useRef, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 
@@ -7,6 +12,13 @@ type Phase = "idle" | "scanning" | "loading" | "error";
 
 const DEBOUNCE_MS = 400;
 const ERROR_DISPLAY_MS = 5000;
+
+// Brand colours — TPG navy palette
+const NAVY = "#1a237e";
+const NAVY_MID = "#283593";
+const NAVY_LIGHT = "#e8eaf6";
+const BLUE_SCAN = "#1565c0";
+const BLUE_GLOW = "#42a5f5";
 
 function KioskPageContent() {
   const searchParams = useSearchParams();
@@ -20,8 +32,9 @@ function KioskPageContent() {
   const [phase, setPhase] = useState<Phase>("idle");
   const [errorMsg, setErrorMsg] = useState<string>("");
   const [manualInput, setManualInput] = useState<string>("");
-  const [showManual, setShowManual] = useState(testMode);
+  const [showAdmin, setShowAdmin] = useState(testMode);
 
+  // ── Focus management ──────────────────────────────────────────────────────
   const focusInput = useCallback(() => {
     inputRef.current?.focus();
   }, []);
@@ -39,6 +52,7 @@ function KioskPageContent() {
     };
   }, [focusInput]);
 
+  // ── UID submission ────────────────────────────────────────────────────────
   const submitUID = useCallback(
     async (uid: string) => {
       if (phase === "loading") return;
@@ -81,6 +95,7 @@ function KioskPageContent() {
     [phase, device, focusInput]
   );
 
+  // ── Keyboard-wedge handlers ───────────────────────────────────────────────
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (phase === "loading" || phase === "error") return;
@@ -115,13 +130,15 @@ function KioskPageContent() {
     if (manualInput.trim()) submitUID(manualInput.trim());
   };
 
+  // ── Derived state for UI ──────────────────────────────────────────────────
+  const isError = phase === "error";
+  const isActive = phase === "scanning" || phase === "loading";
+
   return (
     <div style={s.root}>
-      {/* Ambient background */}
-      <div style={s.ambientLeft} />
-      <div style={s.ambientRight} />
+      <style>{globalKeyframes}</style>
 
-      {/* Hidden keyboard-wedge capture input */}
+      {/* Hidden keyboard-wedge capture input — DO NOT REMOVE */}
       <input
         ref={inputRef}
         onKeyDown={handleKeyDown}
@@ -136,328 +153,438 @@ function KioskPageContent() {
         tabIndex={0}
       />
 
-      {/* Logo */}
-      <div style={s.logoWrap}>
-        <PerfumeGalleryLogo />
-      </div>
+      {/* ── Header ─────────────────────────────────────────────────────────── */}
+      <header style={s.header}>
+        <TPGLogo />
+        <p style={s.tagline}>Discover Your Signature</p>
+      </header>
 
-      {/* Main card */}
-      <div style={s.card}>
-        {/* Scan graphic */}
-        <div style={s.scanGraphicWrap}>
-          <ScanGraphic phase={phase} />
+      {/* ── Divider ────────────────────────────────────────────────────────── */}
+      <div style={s.divider} />
+
+      {/* ── Main content ───────────────────────────────────────────────────── */}
+      <main style={s.main}>
+
+        {/* Illustration */}
+        <div style={s.illustrationWrap}>
+          <KioskIllustration phase={phase} />
         </div>
 
-        {phase === "idle" && (
-          <div style={s.textBlock}>
-            <h1 style={s.heading}>Place your perfume bottle<br />on the blue circle</h1>
-            <p style={s.subtext}>
-              We&apos;ll identify the fragrance and show you<br />
-              prices, notes and similar scents.
-            </p>
-            <ReadyPulse />
-          </div>
-        )}
+        {/* Status block */}
+        <div style={s.statusBlock}>
+          {phase === "idle" && (
+            <>
+              <h1 style={s.heading}>
+                Place your perfume bottle on the illuminated blue circle
+              </h1>
+              <p style={s.subtext}>
+                Discover fragrance notes, pricing, concentration and similar perfumes.
+              </p>
+              <div style={s.readyBadge}>
+                <span style={s.readyDot} />
+                <span style={s.readyLabel}>Ready to scan</span>
+              </div>
+            </>
+          )}
 
-        {phase === "scanning" && (
-          <div style={s.textBlock}>
-            <h1 style={{ ...s.heading, color: "#5b9bd6" }}>Reading…</h1>
-            <p style={s.subtext}>Keep the bottle on the circle</p>
-          </div>
-        )}
+          {phase === "scanning" && (
+            <>
+              <h1 style={{ ...s.heading, color: BLUE_SCAN }}>
+                Identifying fragrance…
+              </h1>
+              <p style={s.subtext}>Keep the bottle on the circle</p>
+              <ScanningIndicator />
+            </>
+          )}
 
-        {phase === "loading" && (
-          <div style={s.textBlock}>
-            <h1 style={{ ...s.heading, color: "#5b9bd6" }}>Finding your fragrance…</h1>
-            <p style={s.subtext}>Just a moment</p>
-          </div>
-        )}
+          {phase === "loading" && (
+            <>
+              <h1 style={{ ...s.heading, color: BLUE_SCAN }}>
+                Finding your fragrance…
+              </h1>
+              <p style={s.subtext}>Just a moment</p>
+              <ScanningIndicator />
+            </>
+          )}
 
-        {phase === "error" && (
-          <div style={s.textBlock}>
-            <h1 style={{ ...s.heading, color: "#c0392b" }}>Fragrance not found</h1>
-            <p style={{ ...s.subtext, color: "#c0392b", opacity: 0.85 }}>
-              {errorMsg}
-            </p>
-            <p style={s.resetNote}>Resetting in {ERROR_DISPLAY_MS / 1000} seconds…</p>
+          {isError && (
+            <>
+              <h1 style={{ ...s.heading, color: "#b71c1c" }}>
+                Fragrance not found
+              </h1>
+              <p style={{ ...s.subtext, color: "#c62828" }}>
+                {errorMsg}
+              </p>
+              <p style={s.resetNote}>
+                Resetting in {ERROR_DISPLAY_MS / 1000} seconds…
+              </p>
+            </>
+          )}
+        </div>
+      </main>
+
+      {/* ── Divider ────────────────────────────────────────────────────────── */}
+      <div style={s.divider} />
+
+      {/* ── Footer ─────────────────────────────────────────────────────────── */}
+      <footer style={s.footer}>
+        <span style={s.footerText}>The Perfume Gallery</span>
+        <span style={s.footerDot}>·</span>
+        <span style={s.footerText}>theperfumegallery.co.za</span>
+      </footer>
+
+      {/* ── Administrator testing panel ─────────────────────────────────────── */}
+      <div style={s.adminWrap}>
+        <button
+          style={s.adminToggle}
+          onClick={(e) => { e.stopPropagation(); setShowAdmin((v) => !v); }}
+        >
+          <span style={s.adminToggleDash} />
+          Administrator Testing
+          <span style={{ ...s.adminChevron, transform: showAdmin ? "rotate(180deg)" : "rotate(0deg)" }}>
+            ▾
+          </span>
+        </button>
+
+        {showAdmin && (
+          <div style={s.adminPanel} onClick={(e) => e.stopPropagation()}>
+            <p style={s.adminPanelLabel}>Enter UID or decimal card number to test lookup</p>
+            <div style={s.adminRow}>
+              <input
+                type="text"
+                placeholder="e.g. 2346117917 or 04:03:2A:92:D4:13:91"
+                value={manualInput}
+                onChange={(e) => setManualInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleManualSubmit()}
+                style={s.adminInput}
+                onClick={(e) => e.stopPropagation()}
+              />
+              <button onClick={handleManualSubmit} style={s.adminSubmitBtn}>
+                Lookup
+              </button>
+            </div>
           </div>
         )}
       </div>
 
-      {/* Tagline */}
-      <p style={s.tagline}>Discover · Compare · Choose</p>
-
-      {/* Manual test input */}
-      {showManual && phase !== "loading" && (
-        <div style={s.manualBox} onClick={(e) => e.stopPropagation()}>
-          <p style={s.manualLabel}>Test mode — enter UID or decimal</p>
-          <div style={s.manualRow}>
-            <input
-              type="text"
-              placeholder="e.g. 2346117917 or 04:03:2A:92:D4:13:91"
-              value={manualInput}
-              onChange={(e) => setManualInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleManualSubmit()}
-              style={s.manualInput}
-              onClick={(e) => e.stopPropagation()}
-            />
-            <button onClick={handleManualSubmit} style={s.manualBtn}>
-              Submit
-            </button>
-          </div>
-        </div>
-      )}
-
-      <button
-        style={s.testToggle}
-        onClick={(e) => { e.stopPropagation(); setShowManual((v) => !v); }}
-      >
-        {showManual ? "Hide test input" : "Test mode"}
-      </button>
+      {/* Suppress TS unused var warnings */}
+      {isActive && null}
     </div>
   );
 }
 
-// ─── Scan graphic ─────────────────────────────────────────────────────────────
+// ─── TPG Logo (SVG recreation of the actual logo) ─────────────────────────────
 
-function ScanGraphic({ phase }: { phase: Phase }) {
-  const isActive = phase === "scanning";
-  const isLoading = phase === "loading";
+function TPGLogo() {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+      {/* TPG monogram mark */}
+      <svg width="72" height="56" viewBox="0 0 72 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+        {/* Outer rectangle frame */}
+        <rect x="1.5" y="1.5" width="69" height="53" rx="0" stroke={NAVY} strokeWidth="3" fill="none"/>
+        {/* Inner cutout top-left */}
+        <rect x="1.5" y="1.5" width="18" height="16" fill="white"/>
+        {/* Inner cutout bottom-right */}
+        <rect x="52.5" y="38.5" width="18" height="16" fill="white"/>
+        {/* T */}
+        <text x="7" y="37" fontFamily="Arial, sans-serif" fontSize="26" fontWeight="700" fill={NAVY} letterSpacing="-1">T</text>
+        {/* P */}
+        <text x="25" y="37" fontFamily="Arial, sans-serif" fontSize="26" fontWeight="700" fill={NAVY} letterSpacing="-1">P</text>
+        {/* G */}
+        <text x="44" y="37" fontFamily="Arial, sans-serif" fontSize="26" fontWeight="700" fill={NAVY} letterSpacing="-1">G</text>
+      </svg>
+
+      {/* Wordmark */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
+        <span style={{
+          fontSize: "1.25rem",
+          fontFamily: "Georgia, 'Times New Roman', serif",
+          fontWeight: 400,
+          color: NAVY,
+          letterSpacing: "0.18em",
+          textTransform: "uppercase" as const,
+          lineHeight: 1.1,
+        }}>THE</span>
+        <span style={{
+          fontSize: "1.25rem",
+          fontFamily: "Georgia, 'Times New Roman', serif",
+          fontWeight: 400,
+          color: NAVY,
+          letterSpacing: "0.18em",
+          textTransform: "uppercase" as const,
+          lineHeight: 1.1,
+        }}>PERFUME</span>
+        <span style={{
+          fontSize: "1.25rem",
+          fontFamily: "Georgia, 'Times New Roman', serif",
+          fontWeight: 400,
+          color: NAVY,
+          letterSpacing: "0.18em",
+          textTransform: "uppercase" as const,
+          lineHeight: 1.1,
+        }}>GALLERY</span>
+      </div>
+    </div>
+  );
+}
+
+// ─── Kiosk illustration ───────────────────────────────────────────────────────
+// Shows a hand placing a perfume bottle onto a glowing blue circle.
+
+function KioskIllustration({ phase }: { phase: Phase }) {
+  const isScanning = phase === "scanning" || phase === "loading";
   const isError = phase === "error";
 
-  const circleColor = isError ? "#c0392b" : isActive || isLoading ? "#5b9bd6" : "#3a5a8a";
-  const glowColor = isError
-    ? "rgba(192,57,43,0.25)"
-    : isActive || isLoading
-    ? "rgba(91,155,214,0.3)"
-    : "rgba(58,90,138,0.15)";
+  const circleStroke = isError ? "#c62828" : BLUE_SCAN;
+  const glowOpacity = isScanning ? 0.55 : isError ? 0.2 : 0.32;
+  const pulseAnim = isScanning ? "scanRipple 1.5s ease-out infinite" : isError ? "none" : "idlePulse 3s ease-in-out infinite";
 
   return (
     <svg
-      viewBox="0 0 220 200"
-      width="220"
-      height="200"
+      viewBox="0 0 340 360"
+      width="100%"
+      style={{ maxWidth: 320, display: "block", margin: "0 auto", overflow: "visible" }}
       xmlns="http://www.w3.org/2000/svg"
-      style={{ overflow: "visible" }}
     >
       <defs>
-        <radialGradient id="glowGrad" cx="50%" cy="100%" r="50%">
-          <stop offset="0%" stopColor={circleColor} stopOpacity="0.35" />
-          <stop offset="100%" stopColor={circleColor} stopOpacity="0" />
+        <radialGradient id="circleGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor={isError ? "#ef5350" : BLUE_GLOW} stopOpacity={glowOpacity} />
+          <stop offset="70%" stopColor={isError ? "#ef5350" : BLUE_GLOW} stopOpacity={glowOpacity * 0.3} />
+          <stop offset="100%" stopColor={isError ? "#ef5350" : BLUE_GLOW} stopOpacity="0" />
         </radialGradient>
-        <style>{`
-          @keyframes scanPulse {
-            0%, 100% { opacity: 0.3; r: 46; }
-            50% { opacity: 0.9; r: 52; }
-          }
-          @keyframes outerRing {
-            0% { opacity: 0.15; r: 58; }
-            50% { opacity: 0.5; r: 64; }
-            100% { opacity: 0.15; r: 58; }
-          }
-          @keyframes bottleFloat {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-5px); }
-          }
-          @keyframes spinLoad {
-            to { transform: rotate(360deg); transform-origin: 110px 162px; }
-          }
-        `}</style>
+        <radialGradient id="surfaceGrad" cx="50%" cy="30%" r="60%">
+          <stop offset="0%" stopColor="#f5f5f5" />
+          <stop offset="100%" stopColor="#e0e0e0" />
+        </radialGradient>
+        <filter id="softBlur">
+          <feGaussianBlur stdDeviation="3" />
+        </filter>
       </defs>
 
-      {/* Glow pool under circle */}
-      <ellipse cx="110" cy="165" rx="62" ry="18" fill="url(#glowGrad)" />
+      {/* Counter surface */}
+      <ellipse cx="170" cy="320" rx="155" ry="22" fill="#e8e8e8" />
+      <rect x="15" y="300" width="310" height="22" rx="4" fill="url(#surfaceGrad)" />
+      <rect x="15" y="296" width="310" height="6" rx="3" fill="#eeeeee" />
 
-      {/* Outer pulse ring */}
-      <circle
-        cx="110" cy="162" r="58"
+      {/* Outer glow rings */}
+      <ellipse
+        cx="170" cy="305" rx="90" ry="14"
         fill="none"
-        stroke={circleColor}
+        stroke={isError ? "#ef5350" : BLUE_GLOW}
         strokeWidth="1"
-        style={{
-          animation: isActive ? "outerRing 1.4s ease-in-out infinite" : "none",
-          opacity: isActive ? 1 : 0.12,
-        }}
+        opacity={isScanning ? "0.6" : "0.2"}
+        style={{ animation: pulseAnim }}
+      />
+      <ellipse
+        cx="170" cy="305" rx="70" ry="11"
+        fill="none"
+        stroke={isError ? "#ef5350" : BLUE_GLOW}
+        strokeWidth="1.5"
+        opacity={isScanning ? "0.8" : "0.35"}
+        style={{ animation: isScanning ? "scanRipple 1.5s ease-out infinite 0.3s" : "none" }}
       />
 
-      {/* Scan circle */}
-      <circle
-        cx="110" cy="162" r="46"
-        fill={glowColor}
-        stroke={circleColor}
-        strokeWidth="2.5"
-        style={{
-          animation: isActive ? "scanPulse 1.4s ease-in-out infinite" : "none",
-          transition: "fill 0.4s, stroke 0.4s",
-        }}
+      {/* Blue scan circle on counter */}
+      <ellipse cx="170" cy="305" rx="58" ry="9" fill="url(#circleGlow)" />
+      <ellipse
+        cx="170" cy="305" rx="52" ry="8"
+        fill={isError ? "rgba(198,40,40,0.08)" : "rgba(21,101,192,0.12)"}
+        stroke={circleStroke}
+        strokeWidth="2"
+      />
+      {/* Circle inner detail */}
+      <ellipse cx="170" cy="305" rx="36" ry="5.5"
+        fill="none"
+        stroke={circleStroke}
+        strokeWidth="1"
+        strokeDasharray="4 3"
+        opacity="0.5"
       />
 
-      {/* Spinner arc when loading */}
-      {isLoading && (
-        <circle
-          cx="110" cy="162" r="52"
-          fill="none"
-          stroke={circleColor}
-          strokeWidth="2"
-          strokeDasharray="60 270"
-          strokeLinecap="round"
-          style={{ animation: "spinLoad 0.9s linear infinite", transformOrigin: "110px 162px" }}
-        />
-      )}
-
-      {/* Horizontal tick marks on circle edge */}
-      {[0, 90, 180, 270].map((deg) => {
-        const rad = (deg * Math.PI) / 180;
-        const x1 = 110 + 44 * Math.cos(rad);
-        const y1 = 162 + 44 * Math.sin(rad);
-        const x2 = 110 + 50 * Math.cos(rad);
-        const y2 = 162 + 50 * Math.sin(rad);
-        return (
-          <line key={deg} x1={x1} y1={y1} x2={x2} y2={y2}
-            stroke={circleColor} strokeWidth="2" opacity="0.6" />
-        );
-      })}
-
-      {/* Perfume bottle */}
-      <g style={{ animation: phase === "idle" ? "bottleFloat 3s ease-in-out infinite" : "none" }}>
+      {/* Perfume bottle body */}
+      <g style={{ animation: isScanning ? "none" : "bottleSettle 4s ease-in-out infinite" }}>
         {/* Bottle cap */}
-        <rect x="97" y="22" width="26" height="10" rx="3"
-          fill="#c8a96e" />
-        {/* Neck */}
-        <rect x="103" y="32" width="14" height="22" rx="2"
-          fill="#d4b882" />
-        {/* Collar */}
-        <rect x="99" y="52" width="22" height="6" rx="2"
-          fill="#c8a96e" />
-        {/* Body */}
-        <rect x="84" y="58" width="52" height="78" rx="8"
-          fill="white" fillOpacity="0.12"
-          stroke="white" strokeOpacity="0.35" strokeWidth="1.5" />
-        {/* Liquid fill */}
-        <rect x="86" y="80" width="48" height="54" rx="6"
-          fill="#d4b882" fillOpacity="0.22" />
+        <rect x="150" y="60" width="40" height="14" rx="4" fill={NAVY} />
+        <rect x="153" y="58" width="34" height="5" rx="2.5" fill={NAVY_MID} />
+
+        {/* Atomiser neck */}
+        <rect x="161" y="74" width="18" height="28" rx="3" fill="#b0bec5" />
+        <rect x="163" y="74" width="6" height="28" rx="2" fill="#cfd8dc" opacity="0.6" />
+
+        {/* Collar ring */}
+        <rect x="148" y="100" width="44" height="9" rx="3" fill={NAVY} />
+
+        {/* Main body */}
+        <rect x="130" y="109" width="80" height="130" rx="12" fill="#fafafa" stroke="#e0e0e0" strokeWidth="1.5" />
+
+        {/* Liquid level */}
+        <rect x="133" y="155" width="74" height="82" rx="8" fill={NAVY_LIGHT} opacity="0.7" />
+        <rect x="133" y="153" width="74" height="5" rx="2" fill={NAVY} opacity="0.12" />
+
         {/* Label */}
-        <rect x="91" y="72" width="38" height="42" rx="4"
-          fill="white" fillOpacity="0.08"
-          stroke="white" strokeOpacity="0.2" strokeWidth="1" />
-        {/* Label lines */}
-        <rect x="96" y="78" width="28" height="2" rx="1" fill="white" fillOpacity="0.3" />
-        <rect x="99" y="83" width="22" height="1.5" rx="0.75" fill="white" fillOpacity="0.2" />
-        <rect x="99" y="87" width="22" height="1.5" rx="0.75" fill="white" fillOpacity="0.2" />
-        <rect x="99" y="91" width="16" height="1.5" rx="0.75" fill="white" fillOpacity="0.2" />
-        {/* Highlight */}
-        <rect x="87" y="62" width="8" height="40" rx="4"
-          fill="white" fillOpacity="0.1" />
+        <rect x="139" y="120" width="62" height="85" rx="5"
+          fill="white" stroke="#e8eaf6" strokeWidth="1" />
+
+        {/* Label: brand name bar */}
+        <rect x="139" y="120" width="62" height="22" rx="5" fill={NAVY} />
+        <rect x="139" y="131" width="62" height="11" rx="0" fill={NAVY} />
+        <text x="170" y="136" textAnchor="middle" fontFamily="Georgia, serif" fontSize="8"
+          fill="white" letterSpacing="2">PARFUM</text>
+
+        {/* Label: decorative lines */}
+        <line x1="148" y1="153" x2="192" y2="153" stroke={NAVY} strokeWidth="0.75" opacity="0.3" />
+        <rect x="148" y="157" width="44" height="2" rx="1" fill={NAVY} opacity="0.15" />
+        <rect x="152" y="162" width="36" height="1.5" rx="0.75" fill={NAVY} opacity="0.12" />
+        <rect x="152" y="167" width="30" height="1.5" rx="0.75" fill={NAVY} opacity="0.1" />
+        <rect x="154" y="172" width="22" height="1.5" rx="0.75" fill={NAVY} opacity="0.08" />
+
+        {/* Body highlight */}
+        <rect x="133" y="112" width="10" height="80" rx="5" fill="white" opacity="0.45" />
+
+        {/* Bottom of bottle */}
+        <rect x="130" y="229" width="80" height="10" rx="6" fill="#e0e0e0" />
       </g>
+
+      {/* Hand placing bottle — elegant feminine hand */}
+      <g style={{ animation: isScanning ? "handDown 1.8s ease-in-out infinite" : "handHover 3.5s ease-in-out infinite" }}>
+        {/* Wrist / lower palm */}
+        <ellipse cx="235" cy="260" rx="18" ry="10" fill="#f5e6d8" />
+        <rect x="218" y="245" width="36" height="22" rx="10" fill="#f5e6d8" />
+
+        {/* Palm */}
+        <ellipse cx="232" cy="240" rx="16" ry="13" fill="#f5e6d8" />
+
+        {/* Thumb */}
+        <ellipse cx="219" cy="238" rx="6" ry="10"
+          fill="#f5e6d8"
+          transform="rotate(-20 219 238)" />
+
+        {/* Index finger */}
+        <rect x="231" y="210" width="9" height="28" rx="4.5" fill="#f5e6d8" />
+        <ellipse cx="235.5" cy="210" rx="4.5" ry="5" fill="#f5e6d8" />
+
+        {/* Middle finger */}
+        <rect x="222" y="208" width="9" height="30" rx="4.5" fill="#f5e6d8" />
+        <ellipse cx="226.5" cy="208" rx="4.5" ry="5" fill="#f5e6d8" />
+
+        {/* Ring finger */}
+        <rect x="213" y="211" width="9" height="27" rx="4.5" fill="#f5e6d8" />
+        <ellipse cx="217.5" cy="211" rx="4.5" ry="5" fill="#f5e6d8" />
+
+        {/* Pinky */}
+        <rect x="205" y="218" width="8" height="20" rx="4" fill="#f5e6d8" />
+        <ellipse cx="209" cy="218" rx="4" ry="4.5" fill="#f5e6d8" />
+
+        {/* Finger detail lines */}
+        <line x1="232" y1="224" x2="237" y2="224" stroke="#e8c8a8" strokeWidth="0.75" opacity="0.7" />
+        <line x1="223" y1="224" x2="229" y2="224" stroke="#e8c8a8" strokeWidth="0.75" opacity="0.7" />
+        <line x1="214" y1="225" x2="220" y2="225" stroke="#e8c8a8" strokeWidth="0.75" opacity="0.7" />
+
+        {/* Nail highlights */}
+        <ellipse cx="235.5" cy="207" rx="3" ry="3.5" fill="#fce4d6" opacity="0.8" />
+        <ellipse cx="226.5" cy="205" rx="3" ry="3.5" fill="#fce4d6" opacity="0.8" />
+        <ellipse cx="217.5" cy="208" rx="3" ry="3.5" fill="#fce4d6" opacity="0.8" />
+      </g>
+
+      {/* Scanning indicator bar */}
+      {(phase === "scanning" || phase === "loading") && (
+        <g>
+          <rect x="110" y="280" width="120" height="3" rx="1.5" fill="#e3f2fd" />
+          <rect x="110" y="280" width="120" height="3" rx="1.5" fill={BLUE_SCAN} opacity="0.9"
+            style={{ animation: "scanBar 1.4s ease-in-out infinite" }} />
+        </g>
+      )}
     </svg>
   );
 }
 
-// ─── Ready pulse indicator ─────────────────────────────────────────────────────
+// ─── Scanning indicator (animated bars) ──────────────────────────────────────
 
-function ReadyPulse() {
+function ScanningIndicator() {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.25rem" }}>
-      <style>{`
-        @keyframes readyPulse {
-          0%, 100% { opacity: 0.4; transform: scale(0.9); }
-          50% { opacity: 1; transform: scale(1.1); }
-        }
-      `}</style>
-      <div style={{
-        width: 8, height: 8, borderRadius: "50%",
-        background: "#5b9bd6",
-        animation: "readyPulse 2.2s ease-in-out infinite",
-        boxShadow: "0 0 8px rgba(91,155,214,0.6)",
-      }} />
-      <span style={{ fontSize: "0.78rem", color: "#5b9bd6", letterSpacing: "0.12em", textTransform: "uppercase" }}>
-        Ready to scan
+    <div style={{ display: "flex", alignItems: "center", gap: "5px", marginTop: "4px" }}>
+      {[0, 0.15, 0.3, 0.45, 0.6].map((delay, i) => (
+        <div
+          key={i}
+          style={{
+            width: 4,
+            height: 20,
+            borderRadius: 2,
+            background: BLUE_SCAN,
+            animation: `barBounce 0.9s ease-in-out infinite`,
+            animationDelay: `${delay}s`,
+            opacity: 0.85,
+          }}
+        />
+      ))}
+      <span style={{
+        marginLeft: "8px",
+        fontSize: "0.8rem",
+        color: BLUE_SCAN,
+        letterSpacing: "0.1em",
+        textTransform: "uppercase" as const,
+        fontWeight: 500,
+      }}>
+        Scanning
       </span>
     </div>
   );
 }
 
-// ─── The Perfume Gallery logo (SVG wordmark) ──────────────────────────────────
+// ─── Keyframe animations ──────────────────────────────────────────────────────
 
-function PerfumeGalleryLogo() {
-  return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-      {/* Decorative top rule */}
-      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-        <div style={{ width: 40, height: 1, background: "linear-gradient(to right, transparent, #c8a96e)" }} />
-        {/* Diamond mark */}
-        <svg width="10" height="10" viewBox="0 0 10 10">
-          <polygon points="5,0 10,5 5,10 0,5" fill="#c8a96e" />
-        </svg>
-        <div style={{ width: 40, height: 1, background: "linear-gradient(to left, transparent, #c8a96e)" }} />
-      </div>
-      {/* Wordmark */}
-      <div style={{ textAlign: "center" }}>
-        <div style={{
-          fontSize: "1.6rem",
-          fontFamily: "'Georgia', 'Times New Roman', serif",
-          fontWeight: 400,
-          letterSpacing: "0.28em",
-          color: "#f0e6d0",
-          textTransform: "uppercase",
-          lineHeight: 1.2,
-        }}>
-          The Perfume
-        </div>
-        <div style={{
-          fontSize: "1.05rem",
-          fontFamily: "'Georgia', 'Times New Roman', serif",
-          fontWeight: 400,
-          letterSpacing: "0.45em",
-          color: "#c8a96e",
-          textTransform: "uppercase",
-          lineHeight: 1.4,
-        }}>
-          Gallery
-        </div>
-      </div>
-      {/* Decorative bottom rule */}
-      <div style={{ width: 90, height: 1, background: "linear-gradient(to right, transparent, #c8a96e, transparent)" }} />
-    </div>
-  );
-}
+const globalKeyframes = `
+  @keyframes idlePulse {
+    0%, 100% { opacity: 0.2; }
+    50% { opacity: 0.5; }
+  }
+  @keyframes scanRipple {
+    0% { opacity: 0.8; transform: scale(1); }
+    100% { opacity: 0; transform: scale(1.35); }
+  }
+  @keyframes bottleSettle {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-6px); }
+  }
+  @keyframes handHover {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-5px); }
+  }
+  @keyframes handDown {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(8px); }
+  }
+  @keyframes scanBar {
+    0% { width: 0px; }
+    60% { width: 120px; }
+    100% { width: 0px; }
+  }
+  @keyframes barBounce {
+    0%, 100% { transform: scaleY(0.4); opacity: 0.4; }
+    50% { transform: scaleY(1); opacity: 1; }
+  }
+  @keyframes readyBlink {
+    0%, 100% { opacity: 0.5; transform: scale(0.9); }
+    50% { opacity: 1; transform: scale(1.15); }
+  }
+`;
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const s: Record<string, React.CSSProperties> = {
   root: {
     minHeight: "100dvh",
-    background: "#0d1117",
+    background: "#ffffff",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    justifyContent: "center",
-    color: "#f0e6d0",
+    justifyContent: "space-between",
+    color: NAVY,
     userSelect: "none",
     WebkitUserSelect: "none",
     position: "relative",
     overflow: "hidden",
-    gap: "2rem",
-  },
-  ambientLeft: {
-    position: "absolute",
-    width: 500,
-    height: 500,
-    borderRadius: "50%",
-    background: "radial-gradient(circle, rgba(58,90,138,0.18) 0%, transparent 70%)",
-    top: "-150px",
-    left: "-150px",
-    pointerEvents: "none",
-  },
-  ambientRight: {
-    position: "absolute",
-    width: 400,
-    height: 400,
-    borderRadius: "50%",
-    background: "radial-gradient(circle, rgba(200,169,110,0.1) 0%, transparent 70%)",
-    bottom: "-100px",
-    right: "-100px",
-    pointerEvents: "none",
+    padding: "0 0 0 0",
   },
   hiddenInput: {
     position: "absolute",
@@ -473,126 +600,230 @@ const s: Record<string, React.CSSProperties> = {
     color: "transparent",
     caretColor: "transparent",
   },
-  logoWrap: {
-    position: "relative",
-    zIndex: 1,
-  },
-  card: {
+
+  // Header
+  header: {
+    width: "100%",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap: "1.75rem",
-    padding: "2.5rem 3.5rem 3rem",
-    background: "rgba(255,255,255,0.035)",
-    border: "1px solid rgba(200,169,110,0.2)",
-    borderRadius: "1.75rem",
-    boxShadow: "0 0 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)",
-    maxWidth: 480,
-    width: "88vw",
-    textAlign: "center",
-    position: "relative",
-    zIndex: 1,
-    backdropFilter: "blur(12px)",
-  },
-  scanGraphicWrap: {
-    marginTop: "0.5rem",
-    marginBottom: "-0.5rem",
-  },
-  textBlock: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
+    justifyContent: "center",
+    padding: "2.5rem 2rem 1.5rem",
     gap: "0.75rem",
-  },
-  heading: {
-    fontSize: "clamp(1.5rem, 3.5vw, 2rem)",
-    fontWeight: 400,
-    fontFamily: "'Georgia', 'Times New Roman', serif",
-    letterSpacing: "0.01em",
-    color: "#f0e6d0",
-    lineHeight: 1.35,
-  },
-  subtext: {
-    fontSize: "1rem",
-    color: "rgba(240,230,208,0.55)",
-    lineHeight: 1.6,
-    fontFamily: "'Segoe UI', system-ui, sans-serif",
-  },
-  resetNote: {
-    fontSize: "0.82rem",
-    color: "rgba(240,230,208,0.35)",
-    fontFamily: "'Segoe UI', system-ui, sans-serif",
-    marginTop: "0.25rem",
+    background: "#ffffff",
   },
   tagline: {
-    fontSize: "0.72rem",
-    letterSpacing: "0.3em",
-    textTransform: "uppercase",
-    color: "rgba(200,169,110,0.45)",
-    fontFamily: "'Georgia', 'Times New Roman', serif",
-    position: "relative",
-    zIndex: 1,
+    fontSize: "0.82rem",
+    fontFamily: "Georgia, 'Times New Roman', serif",
+    color: NAVY_MID,
+    letterSpacing: "0.28em",
+    textTransform: "uppercase" as const,
+    margin: 0,
+    opacity: 0.75,
   },
-  manualBox: {
-    position: "fixed",
-    bottom: "5rem",
-    background: "rgba(13,17,23,0.95)",
-    border: "1px solid rgba(200,169,110,0.25)",
-    borderRadius: "1rem",
-    padding: "1rem 1.5rem",
+
+  // Divider
+  divider: {
+    width: "100%",
+    height: "1px",
+    background: `linear-gradient(to right, transparent, ${NAVY_LIGHT}, ${NAVY_LIGHT}, transparent)`,
+    flexShrink: 0,
+  },
+
+  // Main
+  main: {
+    flex: 1,
+    width: "100%",
+    maxWidth: 480,
     display: "flex",
     flexDirection: "column",
-    gap: "0.5rem",
-    minWidth: 340,
-    zIndex: 20,
-    boxShadow: "0 4px 24px rgba(0,0,0,0.4)",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "1.5rem 2rem 1rem",
+    gap: "1.5rem",
   },
-  manualLabel: {
+  illustrationWrap: {
+    width: "100%",
+    display: "flex",
+    justifyContent: "center",
+  },
+
+  // Status text
+  statusBlock: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "0.65rem",
+    textAlign: "center",
+    width: "100%",
+  },
+  heading: {
+    fontSize: "clamp(1.35rem, 4vw, 1.75rem)",
+    fontFamily: "Georgia, 'Times New Roman', serif",
+    fontWeight: 400,
+    color: NAVY,
+    lineHeight: 1.35,
+    letterSpacing: "0.01em",
+    margin: 0,
+  },
+  subtext: {
+    fontSize: "0.975rem",
+    color: "#546e7a",
+    lineHeight: 1.6,
+    margin: 0,
+    fontFamily: "system-ui, -apple-system, sans-serif",
+    maxWidth: 360,
+  },
+  resetNote: {
+    fontSize: "0.8rem",
+    color: "#90a4ae",
+    margin: 0,
+    fontFamily: "system-ui, sans-serif",
+    letterSpacing: "0.02em",
+  },
+
+  // Ready badge
+  readyBadge: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "8px",
+    marginTop: "4px",
+    padding: "6px 16px",
+    background: NAVY_LIGHT,
+    borderRadius: "999px",
+    border: `1px solid ${BLUE_SCAN}22`,
+  },
+  readyDot: {
+    width: 8,
+    height: 8,
+    borderRadius: "50%",
+    background: BLUE_SCAN,
+    animation: "readyBlink 2.5s ease-in-out infinite",
+    boxShadow: `0 0 6px ${BLUE_SCAN}80`,
+    flexShrink: 0,
+  },
+  readyLabel: {
     fontSize: "0.75rem",
-    color: "rgba(200,169,110,0.6)",
-    textTransform: "uppercase",
-    letterSpacing: "0.1em",
+    color: BLUE_SCAN,
+    fontWeight: 600,
+    letterSpacing: "0.12em",
+    textTransform: "uppercase" as const,
+    fontFamily: "system-ui, sans-serif",
   },
-  manualRow: { display: "flex", gap: "0.5rem" },
-  manualInput: {
+
+  // Footer
+  footer: {
+    width: "100%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "0.75rem",
+    padding: "1rem 2rem",
+    background: "#ffffff",
+  },
+  footerText: {
+    fontSize: "0.72rem",
+    color: "#b0bec5",
+    letterSpacing: "0.08em",
+    textTransform: "uppercase" as const,
+    fontFamily: "system-ui, sans-serif",
+  },
+  footerDot: {
+    color: "#cfd8dc",
+    fontSize: "0.72rem",
+  },
+
+  // Admin panel
+  adminWrap: {
+    position: "fixed" as const,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    zIndex: 30,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+  },
+  adminToggle: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    padding: "8px 20px",
+    background: "#f5f5f5",
+    border: "1px solid #e0e0e0",
+    borderBottom: "none",
+    borderRadius: "8px 8px 0 0",
+    cursor: "pointer",
+    fontSize: "0.72rem",
+    color: "#90a4ae",
+    letterSpacing: "0.06em",
+    textTransform: "uppercase" as const,
+    fontFamily: "system-ui, sans-serif",
+  },
+  adminToggleDash: {
+    display: "inline-block",
+    width: 16,
+    height: 2,
+    background: "#b0bec5",
+    borderRadius: 1,
+  },
+  adminChevron: {
+    display: "inline-block",
+    transition: "transform 0.2s ease",
+    lineHeight: 1,
+    color: "#b0bec5",
+  },
+  adminPanel: {
+    width: "100%",
+    background: "#fafafa",
+    borderTop: "1px solid #e0e0e0",
+    padding: "1rem 1.5rem 1.25rem",
+    display: "flex",
+    flexDirection: "column",
+    gap: "0.6rem",
+  },
+  adminPanelLabel: {
+    fontSize: "0.75rem",
+    color: "#90a4ae",
+    letterSpacing: "0.05em",
+    margin: 0,
+    fontFamily: "system-ui, sans-serif",
+  },
+  adminRow: {
+    display: "flex",
+    gap: "0.5rem",
+  },
+  adminInput: {
     flex: 1,
-    padding: "0.5rem 0.75rem",
-    background: "rgba(255,255,255,0.05)",
-    border: "1px solid rgba(200,169,110,0.2)",
-    borderRadius: "0.5rem",
-    color: "#f0e6d0",
+    padding: "0.55rem 0.85rem",
+    border: "1px solid #e0e0e0",
+    borderRadius: "6px",
+    background: "#ffffff",
+    color: "#37474f",
     fontSize: "0.88rem",
     outline: "none",
     fontFamily: "monospace",
   },
-  manualBtn: {
-    padding: "0.5rem 1rem",
-    background: "#3a5a8a",
-    color: "#fff",
+  adminSubmitBtn: {
+    padding: "0.55rem 1.25rem",
+    background: NAVY,
+    color: "#ffffff",
     border: "none",
-    borderRadius: "0.5rem",
+    borderRadius: "6px",
     cursor: "pointer",
     fontWeight: 600,
     fontSize: "0.88rem",
-  },
-  testToggle: {
-    position: "fixed",
-    bottom: "1.5rem",
-    right: "1.5rem",
-    background: "transparent",
-    border: "1px solid rgba(200,169,110,0.18)",
-    color: "rgba(200,169,110,0.35)",
-    borderRadius: "0.5rem",
-    padding: "0.4rem 0.8rem",
-    fontSize: "0.72rem",
-    cursor: "pointer",
-    zIndex: 20,
-    letterSpacing: "0.05em",
+    fontFamily: "system-ui, sans-serif",
+    letterSpacing: "0.03em",
+    whiteSpace: "nowrap" as const,
   },
 };
+
+// ─── Suspense wrapper (required by Next.js 14 for useSearchParams) ─────────────
+
 export default function KioskPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div style={{ minHeight: "100dvh", background: "#ffffff" }} />}>
       <KioskPageContent />
     </Suspense>
   );
