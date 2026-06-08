@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { Suspense, useEffect, useRef, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 
 type Phase = "idle" | "scanning" | "loading" | "error";
@@ -8,7 +8,7 @@ type Phase = "idle" | "scanning" | "loading" | "error";
 const DEBOUNCE_MS = 400;
 const ERROR_DISPLAY_MS = 5000;
 
-export default function KioskPage() {
+function KioskPageContent() {
   const searchParams = useSearchParams();
   const device = searchParams.get("device") ?? undefined;
   const testMode = searchParams.get("test") === "1";
@@ -590,3 +590,10 @@ const s: Record<string, React.CSSProperties> = {
     letterSpacing: "0.05em",
   },
 };
+export default function KioskPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <KioskPageContent />
+    </Suspense>
+  );
+}
