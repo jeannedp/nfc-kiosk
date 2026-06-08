@@ -14,11 +14,16 @@ const DEBOUNCE_MS = 400;
 const ERROR_DISPLAY_MS = 5000;
 
 // Brand colours — TPG navy palette
-const NAVY = "#1a237e";
-const NAVY_MID = "#283593";
+const NAVY      = "#1a237e";
+const NAVY_MID  = "#283593";
 const NAVY_LIGHT = "#e8eaf6";
 const BLUE_SCAN = "#1565c0";
 const BLUE_GLOW = "#42a5f5";
+
+// ─── Font: Barlow (closest match to TPG's actual site typography) ─────────────
+// The Perfume Gallery uses Barlow via Google Fonts in their Elementor build.
+// Barlow Semi Condensed at wide tracking matches the bottle labels exactly.
+const FONT = "'Barlow', 'Barlow Semi Condensed', system-ui, sans-serif";
 
 function KioskPageContent() {
   const searchParams = useSearchParams();
@@ -130,8 +135,7 @@ function KioskPageContent() {
     if (manualInput.trim()) submitUID(manualInput.trim());
   };
 
-  // ── Derived state for UI ──────────────────────────────────────────────────
-  const isError = phase === "error";
+  const isError  = phase === "error";
   const isActive = phase === "scanning" || phase === "loading";
 
   return (
@@ -267,263 +271,343 @@ function KioskPageContent() {
         )}
       </div>
 
-      {/* Suppress TS unused var warnings */}
       {isActive && null}
     </div>
   );
 }
 
-// ─── TPG Logo (SVG recreation of the actual logo) ─────────────────────────────
+// ─── TPG Logo ─────────────────────────────────────────────────────────────────
 
 function TPGLogo() {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-      {/* TPG monogram mark */}
+      {/* TPG monogram mark — matches actual logo geometry */}
       <svg width="72" height="56" viewBox="0 0 72 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-        {/* Outer rectangle frame */}
-        <rect x="1.5" y="1.5" width="69" height="53" rx="0" stroke={NAVY} strokeWidth="3" fill="none"/>
-        {/* Inner cutout top-left */}
+        <rect x="1.5" y="1.5" width="69" height="53" stroke={NAVY} strokeWidth="3" fill="none"/>
         <rect x="1.5" y="1.5" width="18" height="16" fill="white"/>
-        {/* Inner cutout bottom-right */}
         <rect x="52.5" y="38.5" width="18" height="16" fill="white"/>
-        {/* T */}
-        <text x="7" y="37" fontFamily="Arial, sans-serif" fontSize="26" fontWeight="700" fill={NAVY} letterSpacing="-1">T</text>
-        {/* P */}
-        <text x="25" y="37" fontFamily="Arial, sans-serif" fontSize="26" fontWeight="700" fill={NAVY} letterSpacing="-1">P</text>
-        {/* G */}
-        <text x="44" y="37" fontFamily="Arial, sans-serif" fontSize="26" fontWeight="700" fill={NAVY} letterSpacing="-1">G</text>
+        <text x="7" y="37" fontFamily="'Barlow', sans-serif" fontSize="26" fontWeight="700" fill={NAVY} letterSpacing="-1">T</text>
+        <text x="25" y="37" fontFamily="'Barlow', sans-serif" fontSize="26" fontWeight="700" fill={NAVY} letterSpacing="-1">P</text>
+        <text x="44" y="37" fontFamily="'Barlow', sans-serif" fontSize="26" fontWeight="700" fill={NAVY} letterSpacing="-1">G</text>
       </svg>
 
-      {/* Wordmark */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
-        <span style={{
-          fontSize: "1.25rem",
-          fontFamily: "Georgia, 'Times New Roman', serif",
-          fontWeight: 400,
-          color: NAVY,
-          letterSpacing: "0.18em",
-          textTransform: "uppercase" as const,
-          lineHeight: 1.1,
-        }}>THE</span>
-        <span style={{
-          fontSize: "1.25rem",
-          fontFamily: "Georgia, 'Times New Roman', serif",
-          fontWeight: 400,
-          color: NAVY,
-          letterSpacing: "0.18em",
-          textTransform: "uppercase" as const,
-          lineHeight: 1.1,
-        }}>PERFUME</span>
-        <span style={{
-          fontSize: "1.25rem",
-          fontFamily: "Georgia, 'Times New Roman', serif",
-          fontWeight: 400,
-          color: NAVY,
-          letterSpacing: "0.18em",
-          textTransform: "uppercase" as const,
-          lineHeight: 1.1,
-        }}>GALLERY</span>
+      {/* Wordmark in Barlow — matching the actual TPG bottle label typography */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "0px" }}>
+        {["THE", "PERFUME", "GALLERY"].map((word) => (
+          <span key={word} style={{
+            fontSize: "1.15rem",
+            fontFamily: FONT,
+            fontWeight: 600,
+            color: NAVY,
+            letterSpacing: "0.22em",
+            textTransform: "uppercase" as const,
+            lineHeight: 1.15,
+          }}>{word}</span>
+        ))}
       </div>
     </div>
   );
 }
 
-// ─── Kiosk illustration ───────────────────────────────────────────────────────
-// Shows a hand placing a perfume bottle onto a glowing blue circle.
+// ─── TPG Bottle — cobalt blue cylindrical bottle matching the real product ────
 
-function KioskIllustration({ phase }: { phase: Phase }) {
+function TPGBottle({ phase }: { phase: Phase }) {
   const isScanning = phase === "scanning" || phase === "loading";
-  const isError = phase === "error";
+  const isError    = phase === "error";
 
-  const circleStroke = isError ? "#c62828" : BLUE_SCAN;
-  const glowOpacity = isScanning ? 0.55 : isError ? 0.2 : 0.32;
-  const pulseAnim = isScanning ? "scanRipple 1.5s ease-out infinite" : isError ? "none" : "idlePulse 3s ease-in-out infinite";
+  // Cobalt blue body colour matching the actual TPG bottle
+  const COBALT      = "#1a3a9c";
+  const COBALT_MID  = "#1e44b8";
+  const COBALT_DARK = "#0f2566";
+  const COBALT_LITE = "#2d55d4";
+  const SILVER      = "#c8cdd6";
+  const SILVER_MID  = "#e2e6ed";
+  const SILVER_DARK = "#8a9099";
 
   return (
     <svg
-      viewBox="0 0 340 360"
-      width="100%"
-      style={{ maxWidth: 320, display: "block", margin: "0 auto", overflow: "visible" }}
+      viewBox="0 0 160 340"
+      width="130"
+      height="276"
       xmlns="http://www.w3.org/2000/svg"
+      style={{
+        display: "block",
+        filter: `drop-shadow(0 12px 32px rgba(26,58,156,0.35)) drop-shadow(0 2px 8px rgba(0,0,0,0.2))`,
+        animation: isError ? "none" : isScanning ? "none" : "bottleFloat 4s ease-in-out infinite",
+      }}
     >
       <defs>
-        <radialGradient id="circleGlow" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor={isError ? "#ef5350" : BLUE_GLOW} stopOpacity={glowOpacity} />
-          <stop offset="70%" stopColor={isError ? "#ef5350" : BLUE_GLOW} stopOpacity={glowOpacity * 0.3} />
-          <stop offset="100%" stopColor={isError ? "#ef5350" : BLUE_GLOW} stopOpacity="0" />
+        {/* Main bottle cylinder gradient — light from upper-left */}
+        <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%"   stopColor={COBALT_DARK} />
+          <stop offset="18%"  stopColor={COBALT_MID} />
+          <stop offset="42%"  stopColor={COBALT_LITE} />
+          <stop offset="58%"  stopColor={COBALT_MID} />
+          <stop offset="100%" stopColor={COBALT_DARK} />
+        </linearGradient>
+        {/* Specular highlight streak */}
+        <linearGradient id="highlightGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%"   stopColor="white" stopOpacity="0" />
+          <stop offset="50%"  stopColor="white" stopOpacity="0.22" />
+          <stop offset="100%" stopColor="white" stopOpacity="0" />
+        </linearGradient>
+        {/* Silver cap gradient */}
+        <linearGradient id="capGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%"   stopColor={SILVER_DARK} />
+          <stop offset="25%"  stopColor={SILVER_MID} />
+          <stop offset="50%"  stopColor="#ffffff" />
+          <stop offset="75%"  stopColor={SILVER_MID} />
+          <stop offset="100%" stopColor={SILVER_DARK} />
+        </linearGradient>
+        {/* Cap top ellipse */}
+        <radialGradient id="capTopGrad" cx="40%" cy="35%" r="60%">
+          <stop offset="0%"   stopColor="#ffffff" />
+          <stop offset="100%" stopColor={SILVER} />
         </radialGradient>
-        <radialGradient id="surfaceGrad" cx="50%" cy="30%" r="60%">
-          <stop offset="0%" stopColor="#f5f5f5" />
-          <stop offset="100%" stopColor="#e0e0e0" />
+        {/* Neck gradient */}
+        <linearGradient id="neckGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%"   stopColor={SILVER_DARK} />
+          <stop offset="35%"  stopColor={SILVER_MID} />
+          <stop offset="50%"  stopColor="#f0f2f5" />
+          <stop offset="65%"  stopColor={SILVER_MID} />
+          <stop offset="100%" stopColor={SILVER_DARK} />
+        </linearGradient>
+        {/* Bottom shadow */}
+        <radialGradient id="shadowGrad" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stopColor="rgba(0,0,0,0.25)" />
+          <stop offset="100%" stopColor="rgba(0,0,0,0)" />
         </radialGradient>
-        <filter id="softBlur">
-          <feGaussianBlur stdDeviation="3" />
-        </filter>
       </defs>
 
-      {/* Counter surface */}
-      <ellipse cx="170" cy="320" rx="155" ry="22" fill="#e8e8e8" />
-      <rect x="15" y="300" width="310" height="22" rx="4" fill="url(#surfaceGrad)" />
-      <rect x="15" y="296" width="310" height="6" rx="3" fill="#eeeeee" />
+      {/* ── Drop shadow ellipse ── */}
+      <ellipse cx="80" cy="334" rx="52" ry="7" fill="url(#shadowGrad)" />
 
-      {/* Outer glow rings */}
-      <ellipse
-        cx="170" cy="305" rx="90" ry="14"
-        fill="none"
-        stroke={isError ? "#ef5350" : BLUE_GLOW}
-        strokeWidth="1"
-        opacity={isScanning ? "0.6" : "0.2"}
-        style={{ animation: pulseAnim }}
-      />
-      <ellipse
-        cx="170" cy="305" rx="70" ry="11"
-        fill="none"
-        stroke={isError ? "#ef5350" : BLUE_GLOW}
-        strokeWidth="1.5"
-        opacity={isScanning ? "0.8" : "0.35"}
-        style={{ animation: isScanning ? "scanRipple 1.5s ease-out infinite 0.3s" : "none" }}
-      />
+      {/* ── Bottle body — tall cylinder ── */}
+      {/* Main cylinder — rounded rect simulating cylinder */}
+      <rect x="26" y="108" width="108" height="218" rx="16"
+        fill="url(#bodyGrad)" />
+      {/* Top ellipse cap of cylinder */}
+      <ellipse cx="80" cy="116" rx="54" ry="10"
+        fill={COBALT_MID} />
+      {/* Bottom ellipse */}
+      <ellipse cx="80" cy="318" rx="54" ry="10"
+        fill={COBALT_DARK} />
+      {/* Specular highlight on body */}
+      <rect x="38" y="115" width="44" height="210" rx="12"
+        fill="url(#highlightGrad)" />
+      {/* Left edge darkening */}
+      <rect x="26" y="116" width="18" height="206" rx="8"
+        fill="rgba(0,0,0,0.18)" />
+      {/* Right edge darkening */}
+      <rect x="116" y="116" width="18" height="206" rx="8"
+        fill="rgba(0,0,0,0.22)" />
 
-      {/* Blue scan circle on counter */}
-      <ellipse cx="170" cy="305" rx="58" ry="9" fill="url(#circleGlow)" />
-      <ellipse
-        cx="170" cy="305" rx="52" ry="8"
-        fill={isError ? "rgba(198,40,40,0.08)" : "rgba(21,101,192,0.12)"}
-        stroke={circleStroke}
-        strokeWidth="2"
-      />
-      {/* Circle inner detail */}
-      <ellipse cx="170" cy="305" rx="36" ry="5.5"
-        fill="none"
-        stroke={circleStroke}
-        strokeWidth="1"
-        strokeDasharray="4 3"
-        opacity="0.5"
-      />
+      {/* ── Label panel ── */}
+      <rect x="36" y="130" width="88" height="158" rx="4"
+        fill={COBALT} fillOpacity="0.0" />
+      {/* White label background */}
+      <rect x="36" y="148" width="88" height="130" rx="3"
+        fill="white" fillOpacity="0.1" />
 
-      {/* Perfume bottle body */}
-      <g style={{ animation: isScanning ? "none" : "bottleSettle 4s ease-in-out infinite" }}>
-        {/* Bottle cap */}
-        <rect x="150" y="60" width="40" height="14" rx="4" fill={NAVY} />
-        <rect x="153" y="58" width="34" height="5" rx="2.5" fill={NAVY_MID} />
+      {/* ── TPG mark on bottle ── */}
+      {/* Outer rectangle */}
+      <rect x="48" y="155" width="38" height="29" rx="0"
+        fill="none" stroke="white" strokeWidth="1.8" />
+      {/* Top-left cutout */}
+      <rect x="48" y="155" width="10" height="8" fill={COBALT} />
+      {/* Bottom-right cutout */}
+      <rect x="76" y="176" width="10" height="8" fill={COBALT} />
+      {/* TPG letters */}
+      <text x="51" y="175" fontFamily="'Barlow', sans-serif" fontSize="13"
+        fontWeight="700" fill="white" letterSpacing="0.5">TPG</text>
 
-        {/* Atomiser neck */}
-        <rect x="161" y="74" width="18" height="28" rx="3" fill="#b0bec5" />
-        <rect x="163" y="74" width="6" height="28" rx="2" fill="#cfd8dc" opacity="0.6" />
+      {/* ── Wordmark on bottle ── */}
+      <text x="52" y="196" fontFamily="'Barlow', sans-serif" fontSize="6.5"
+        fontWeight="600" fill="white" letterSpacing="1.5">THE</text>
+      <text x="52" y="205" fontFamily="'Barlow', sans-serif" fontSize="6.5"
+        fontWeight="600" fill="white" letterSpacing="1.5">PERFUME</text>
+      <text x="52" y="214" fontFamily="'Barlow', sans-serif" fontSize="6.5"
+        fontWeight="600" fill="white" letterSpacing="1.5">GALLERY</text>
 
-        {/* Collar ring */}
-        <rect x="148" y="100" width="44" height="9" rx="3" fill={NAVY} />
+      {/* ── Size label at bottom of body ── */}
+      <line x1="40" y1="256" x2="120" y2="256"
+        stroke="white" strokeWidth="0.75" opacity="0.35" />
+      <text x="80" y="270" textAnchor="middle"
+        fontFamily="'Barlow', sans-serif" fontSize="7"
+        fontWeight="500" fill="white" letterSpacing="2" opacity="0.75">
+        EXTRAIT | 30ml
+      </text>
 
-        {/* Main body */}
-        <rect x="130" y="109" width="80" height="130" rx="12" fill="#fafafa" stroke="#e0e0e0" strokeWidth="1.5" />
+      {/* ── Neck — narrower cylinder ── */}
+      <rect x="52" y="70" width="56" height="42" rx="6"
+        fill="url(#neckGrad)" />
+      {/* Neck top ellipse */}
+      <ellipse cx="80" cy="72" rx="28" ry="5.5"
+        fill={SILVER_MID} />
+      {/* Neck bottom ellipse */}
+      <ellipse cx="80" cy="110" rx="28" ry="5"
+        fill={SILVER} />
+      {/* Neck highlight */}
+      <rect x="56" y="72" width="16" height="40" rx="4"
+        fill="white" opacity="0.2" />
+      {/* Neck collar ring */}
+      <rect x="48" y="104" width="64" height="8" rx="3"
+        fill="url(#neckGrad)" />
+      <ellipse cx="80" cy="104" rx="32" ry="5"
+        fill={SILVER_MID} />
 
-        {/* Liquid level */}
-        <rect x="133" y="155" width="74" height="82" rx="8" fill={NAVY_LIGHT} opacity="0.7" />
-        <rect x="133" y="153" width="74" height="5" rx="2" fill={NAVY} opacity="0.12" />
-
-        {/* Label */}
-        <rect x="139" y="120" width="62" height="85" rx="5"
-          fill="white" stroke="#e8eaf6" strokeWidth="1" />
-
-        {/* Label: brand name bar */}
-        <rect x="139" y="120" width="62" height="22" rx="5" fill={NAVY} />
-        <rect x="139" y="131" width="62" height="11" rx="0" fill={NAVY} />
-        <text x="170" y="136" textAnchor="middle" fontFamily="Georgia, serif" fontSize="8"
-          fill="white" letterSpacing="2">PARFUM</text>
-
-        {/* Label: decorative lines */}
-        <line x1="148" y1="153" x2="192" y2="153" stroke={NAVY} strokeWidth="0.75" opacity="0.3" />
-        <rect x="148" y="157" width="44" height="2" rx="1" fill={NAVY} opacity="0.15" />
-        <rect x="152" y="162" width="36" height="1.5" rx="0.75" fill={NAVY} opacity="0.12" />
-        <rect x="152" y="167" width="30" height="1.5" rx="0.75" fill={NAVY} opacity="0.1" />
-        <rect x="154" y="172" width="22" height="1.5" rx="0.75" fill={NAVY} opacity="0.08" />
-
-        {/* Body highlight */}
-        <rect x="133" y="112" width="10" height="80" rx="5" fill="white" opacity="0.45" />
-
-        {/* Bottom of bottle */}
-        <rect x="130" y="229" width="80" height="10" rx="6" fill="#e0e0e0" />
-      </g>
-
-      {/* Hand placing bottle — elegant feminine hand */}
-      <g style={{ animation: isScanning ? "handDown 1.8s ease-in-out infinite" : "handHover 3.5s ease-in-out infinite" }}>
-        {/* Wrist / lower palm */}
-        <ellipse cx="235" cy="260" rx="18" ry="10" fill="#f5e6d8" />
-        <rect x="218" y="245" width="36" height="22" rx="10" fill="#f5e6d8" />
-
-        {/* Palm */}
-        <ellipse cx="232" cy="240" rx="16" ry="13" fill="#f5e6d8" />
-
-        {/* Thumb */}
-        <ellipse cx="219" cy="238" rx="6" ry="10"
-          fill="#f5e6d8"
-          transform="rotate(-20 219 238)" />
-
-        {/* Index finger */}
-        <rect x="231" y="210" width="9" height="28" rx="4.5" fill="#f5e6d8" />
-        <ellipse cx="235.5" cy="210" rx="4.5" ry="5" fill="#f5e6d8" />
-
-        {/* Middle finger */}
-        <rect x="222" y="208" width="9" height="30" rx="4.5" fill="#f5e6d8" />
-        <ellipse cx="226.5" cy="208" rx="4.5" ry="5" fill="#f5e6d8" />
-
-        {/* Ring finger */}
-        <rect x="213" y="211" width="9" height="27" rx="4.5" fill="#f5e6d8" />
-        <ellipse cx="217.5" cy="211" rx="4.5" ry="5" fill="#f5e6d8" />
-
-        {/* Pinky */}
-        <rect x="205" y="218" width="8" height="20" rx="4" fill="#f5e6d8" />
-        <ellipse cx="209" cy="218" rx="4" ry="4.5" fill="#f5e6d8" />
-
-        {/* Finger detail lines */}
-        <line x1="232" y1="224" x2="237" y2="224" stroke="#e8c8a8" strokeWidth="0.75" opacity="0.7" />
-        <line x1="223" y1="224" x2="229" y2="224" stroke="#e8c8a8" strokeWidth="0.75" opacity="0.7" />
-        <line x1="214" y1="225" x2="220" y2="225" stroke="#e8c8a8" strokeWidth="0.75" opacity="0.7" />
-
-        {/* Nail highlights */}
-        <ellipse cx="235.5" cy="207" rx="3" ry="3.5" fill="#fce4d6" opacity="0.8" />
-        <ellipse cx="226.5" cy="205" rx="3" ry="3.5" fill="#fce4d6" opacity="0.8" />
-        <ellipse cx="217.5" cy="208" rx="3" ry="3.5" fill="#fce4d6" opacity="0.8" />
-      </g>
-
-      {/* Scanning indicator bar */}
-      {(phase === "scanning" || phase === "loading") && (
-        <g>
-          <rect x="110" y="280" width="120" height="3" rx="1.5" fill="#e3f2fd" />
-          <rect x="110" y="280" width="120" height="3" rx="1.5" fill={BLUE_SCAN} opacity="0.9"
-            style={{ animation: "scanBar 1.4s ease-in-out infinite" }} />
-        </g>
-      )}
+      {/* ── Cap — tall rounded cylinder (silver) ── */}
+      {/* Main cap body */}
+      <rect x="46" y="14" width="68" height="58" rx="12"
+        fill="url(#capGrad)" />
+      {/* Cap top ellipse */}
+      <ellipse cx="80" cy="16" rx="34" ry="9"
+        fill="url(#capTopGrad)" />
+      {/* Cap bottom ellipse */}
+      <ellipse cx="80" cy="70" rx="34" ry="7"
+        fill={SILVER} />
+      {/* Cap left shadow */}
+      <rect x="46" y="18" width="14" height="52" rx="6"
+        fill="rgba(0,0,0,0.12)" />
+      {/* Cap right shadow */}
+      <rect x="100" y="18" width="14" height="52" rx="6"
+        fill="rgba(0,0,0,0.15)" />
+      {/* Cap specular highlight */}
+      <rect x="60" y="16" width="24" height="52" rx="8"
+        fill="white" opacity="0.18" />
+      {/* Cap ridge near bottom */}
+      <rect x="46" y="62" width="68" height="5" rx="2"
+        fill={SILVER_DARK} opacity="0.4" />
     </svg>
   );
 }
 
-// ─── Scanning indicator (animated bars) ──────────────────────────────────────
+// ─── Kiosk illustration — bottle above glowing blue scan circle ───────────────
+
+function KioskIllustration({ phase }: { phase: Phase }) {
+  const isScanning = phase === "scanning" || phase === "loading";
+  const isError    = phase === "error";
+
+  const circleColor  = isError ? "#c62828" : BLUE_SCAN;
+  const glowColor    = isError ? "#ef5350" : BLUE_GLOW;
+  const pulseAnim    = isScanning
+    ? "scanRipple 1.4s ease-out infinite"
+    : isError ? "none"
+    : "idlePulse 3s ease-in-out infinite";
+
+  return (
+    <div style={{ position: "relative", display: "inline-block" }}>
+      {/* Glowing scan circle — rendered as a separate SVG layer behind the bottle */}
+      <svg
+        viewBox="0 0 300 100"
+        width="280"
+        style={{ display: "block", overflow: "visible", marginBottom: -8 }}
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <defs>
+          <radialGradient id="cglow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%"   stopColor={glowColor} stopOpacity={isScanning ? "0.5" : isError ? "0.15" : "0.28"} />
+            <stop offset="60%"  stopColor={glowColor} stopOpacity={isScanning ? "0.15" : "0.06"} />
+            <stop offset="100%" stopColor={glowColor} stopOpacity="0" />
+          </radialGradient>
+          <linearGradient id="surfGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#f2f2f2" />
+            <stop offset="100%" stopColor="#e4e4e4" />
+          </linearGradient>
+        </defs>
+
+        {/* Counter surface */}
+        <rect x="10" y="56" width="280" height="36" rx="6" fill="url(#surfGrad)" />
+        <rect x="10" y="54" width="280" height="5" rx="2.5" fill="#ebebeb" />
+
+        {/* Glow pool beneath circle */}
+        <ellipse cx="150" cy="68" rx="90" ry="22" fill="url(#cglow)" />
+
+        {/* Outer pulse ring */}
+        <ellipse cx="150" cy="66" rx="78" ry="13"
+          fill="none" stroke={glowColor} strokeWidth="1"
+          opacity={isScanning ? "0.7" : isError ? "0.15" : "0.25"}
+          style={{ animation: pulseAnim }} />
+
+        {/* Mid ring */}
+        <ellipse cx="150" cy="66" rx="64" ry="10.5"
+          fill="none" stroke={circleColor} strokeWidth="1.2"
+          opacity={isScanning ? "0.85" : "0.4"}
+          style={{ animation: isScanning ? "scanRipple 1.4s ease-out infinite 0.25s" : "none" }} />
+
+        {/* Main illuminated scan circle */}
+        <ellipse cx="150" cy="66" rx="52" ry="8.5"
+          fill={isScanning ? `${glowColor}22` : isError ? "rgba(198,40,40,0.06)" : `${BLUE_SCAN}0e`}
+          stroke={circleColor}
+          strokeWidth="2" />
+
+        {/* Inner dashed ring */}
+        <ellipse cx="150" cy="66" rx="36" ry="5.8"
+          fill="none" stroke={circleColor}
+          strokeWidth="0.75" strokeDasharray="5 3.5" opacity="0.45" />
+
+        {/* Quadrant tick marks */}
+        {[0, 90, 180, 270].map((deg) => {
+          const r = Math.PI / 180;
+          const ox = 150, oy = 66, ra = 50, rb = 8;
+          const x1 = ox + (ra - 5) * Math.cos(deg * r);
+          const y1 = oy + (rb - 1) * Math.sin(deg * r);
+          const x2 = ox + (ra + 5) * Math.cos(deg * r);
+          const y2 = oy + (rb + 1) * Math.sin(deg * r);
+          return <line key={deg} x1={x1} y1={y1} x2={x2} y2={y2}
+            stroke={circleColor} strokeWidth="1.5" opacity="0.55" />;
+        })}
+
+        {/* Scanning sweep bar */}
+        {isScanning && (
+          <rect x="98" y="63" width="104" height="2.5" rx="1.25"
+            fill={circleColor} opacity="0.6"
+            style={{ animation: "scanBar 1.3s ease-in-out infinite" }} />
+        )}
+      </svg>
+
+      {/* The actual bottle — centred above the circle */}
+      <div style={{
+        position: "absolute",
+        bottom: 24,
+        left: "50%",
+        transform: "translateX(-50%)",
+        display: "flex",
+        justifyContent: "center",
+      }}>
+        <TPGBottle phase={phase} />
+      </div>
+
+      {/* Spacer so the outer div is tall enough */}
+      <div style={{ height: 280, width: 280 }} />
+    </div>
+  );
+}
+
+// ─── Scanning bars indicator ──────────────────────────────────────────────────
 
 function ScanningIndicator() {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "5px", marginTop: "4px" }}>
       {[0, 0.15, 0.3, 0.45, 0.6].map((delay, i) => (
-        <div
-          key={i}
-          style={{
-            width: 4,
-            height: 20,
-            borderRadius: 2,
-            background: BLUE_SCAN,
-            animation: `barBounce 0.9s ease-in-out infinite`,
-            animationDelay: `${delay}s`,
-            opacity: 0.85,
-          }}
-        />
+        <div key={i} style={{
+          width: 4,
+          height: 20,
+          borderRadius: 2,
+          background: BLUE_SCAN,
+          animation: "barBounce 0.9s ease-in-out infinite",
+          animationDelay: `${delay}s`,
+          opacity: 0.85,
+        }} />
       ))}
       <span style={{
         marginLeft: "8px",
-        fontSize: "0.8rem",
+        fontSize: "0.78rem",
         color: BLUE_SCAN,
-        letterSpacing: "0.1em",
+        letterSpacing: "0.12em",
         textTransform: "uppercase" as const,
-        fontWeight: 500,
+        fontWeight: 600,
+        fontFamily: FONT,
       }}>
         Scanning
       </span>
@@ -534,42 +618,36 @@ function ScanningIndicator() {
 // ─── Keyframe animations ──────────────────────────────────────────────────────
 
 const globalKeyframes = `
+  @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Semi+Condensed:wght@400;600;700&display=swap');
+
   @keyframes idlePulse {
-    0%, 100% { opacity: 0.2; }
-    50% { opacity: 0.5; }
+    0%, 100% { opacity: 0.25; }
+    50%       { opacity: 0.55; }
   }
   @keyframes scanRipple {
-    0% { opacity: 0.8; transform: scale(1); }
-    100% { opacity: 0; transform: scale(1.35); }
+    0%   { opacity: 0.85; transform: scale(1); }
+    100% { opacity: 0;    transform: scale(1.4); }
   }
-  @keyframes bottleSettle {
+  @keyframes bottleFloat {
     0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-6px); }
-  }
-  @keyframes handHover {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-5px); }
-  }
-  @keyframes handDown {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(8px); }
+    50%       { transform: translateY(-8px); }
   }
   @keyframes scanBar {
-    0% { width: 0px; }
-    60% { width: 120px; }
-    100% { width: 0px; }
+    0%   { width: 0px;   opacity: 0.3; }
+    50%  { width: 104px; opacity: 0.8; }
+    100% { width: 0px;   opacity: 0.3; }
   }
   @keyframes barBounce {
-    0%, 100% { transform: scaleY(0.4); opacity: 0.4; }
-    50% { transform: scaleY(1); opacity: 1; }
+    0%, 100% { transform: scaleY(0.35); opacity: 0.35; }
+    50%       { transform: scaleY(1);    opacity: 1;    }
   }
   @keyframes readyBlink {
-    0%, 100% { opacity: 0.5; transform: scale(0.9); }
-    50% { opacity: 1; transform: scale(1.15); }
+    0%, 100% { opacity: 0.45; transform: scale(0.88); }
+    50%       { opacity: 1;    transform: scale(1.18); }
   }
 `;
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
+// ─── Styles — all font-family references use Barlow ──────────────────────────
 
 const s: Record<string, React.CSSProperties> = {
   root: {
@@ -584,7 +662,7 @@ const s: Record<string, React.CSSProperties> = {
     WebkitUserSelect: "none",
     position: "relative",
     overflow: "hidden",
-    padding: "0 0 0 0",
+    fontFamily: FONT,
   },
   hiddenInput: {
     position: "absolute",
@@ -613,13 +691,14 @@ const s: Record<string, React.CSSProperties> = {
     background: "#ffffff",
   },
   tagline: {
-    fontSize: "0.82rem",
-    fontFamily: "Georgia, 'Times New Roman', serif",
+    fontSize: "0.78rem",
+    fontFamily: FONT,
+    fontWeight: 400,
     color: NAVY_MID,
-    letterSpacing: "0.28em",
+    letterSpacing: "0.35em",
     textTransform: "uppercase" as const,
     margin: 0,
-    opacity: 0.75,
+    opacity: 0.65,
   },
 
   // Divider
@@ -640,7 +719,7 @@ const s: Record<string, React.CSSProperties> = {
     alignItems: "center",
     justifyContent: "center",
     padding: "1.5rem 2rem 1rem",
-    gap: "1.5rem",
+    gap: "1.75rem",
   },
   illustrationWrap: {
     width: "100%",
@@ -653,33 +732,35 @@ const s: Record<string, React.CSSProperties> = {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap: "0.65rem",
+    gap: "0.7rem",
     textAlign: "center",
     width: "100%",
   },
   heading: {
-    fontSize: "clamp(1.35rem, 4vw, 1.75rem)",
-    fontFamily: "Georgia, 'Times New Roman', serif",
-    fontWeight: 400,
+    fontSize: "clamp(1.3rem, 4vw, 1.65rem)",
+    fontFamily: FONT,
+    fontWeight: 300,
     color: NAVY,
-    lineHeight: 1.35,
-    letterSpacing: "0.01em",
+    lineHeight: 1.38,
+    letterSpacing: "0.02em",
     margin: 0,
   },
   subtext: {
-    fontSize: "0.975rem",
+    fontSize: "0.93rem",
+    fontFamily: FONT,
+    fontWeight: 400,
     color: "#546e7a",
-    lineHeight: 1.6,
+    lineHeight: 1.65,
     margin: 0,
-    fontFamily: "system-ui, -apple-system, sans-serif",
     maxWidth: 360,
+    letterSpacing: "0.02em",
   },
   resetNote: {
-    fontSize: "0.8rem",
+    fontSize: "0.78rem",
+    fontFamily: FONT,
     color: "#90a4ae",
     margin: 0,
-    fontFamily: "system-ui, sans-serif",
-    letterSpacing: "0.02em",
+    letterSpacing: "0.04em",
   },
 
   // Ready badge
@@ -688,10 +769,10 @@ const s: Record<string, React.CSSProperties> = {
     alignItems: "center",
     gap: "8px",
     marginTop: "4px",
-    padding: "6px 16px",
+    padding: "6px 18px",
     background: NAVY_LIGHT,
     borderRadius: "999px",
-    border: `1px solid ${BLUE_SCAN}22`,
+    border: `1px solid ${BLUE_SCAN}25`,
   },
   readyDot: {
     width: 8,
@@ -699,16 +780,16 @@ const s: Record<string, React.CSSProperties> = {
     borderRadius: "50%",
     background: BLUE_SCAN,
     animation: "readyBlink 2.5s ease-in-out infinite",
-    boxShadow: `0 0 6px ${BLUE_SCAN}80`,
+    boxShadow: `0 0 7px ${BLUE_SCAN}90`,
     flexShrink: 0,
   },
   readyLabel: {
-    fontSize: "0.75rem",
-    color: BLUE_SCAN,
+    fontSize: "0.72rem",
+    fontFamily: FONT,
     fontWeight: 600,
-    letterSpacing: "0.12em",
+    color: BLUE_SCAN,
+    letterSpacing: "0.18em",
     textTransform: "uppercase" as const,
-    fontFamily: "system-ui, sans-serif",
   },
 
   // Footer
@@ -722,15 +803,16 @@ const s: Record<string, React.CSSProperties> = {
     background: "#ffffff",
   },
   footerText: {
-    fontSize: "0.72rem",
+    fontSize: "0.68rem",
+    fontFamily: FONT,
+    fontWeight: 500,
     color: "#b0bec5",
-    letterSpacing: "0.08em",
+    letterSpacing: "0.14em",
     textTransform: "uppercase" as const,
-    fontFamily: "system-ui, sans-serif",
   },
   footerDot: {
     color: "#cfd8dc",
-    fontSize: "0.72rem",
+    fontSize: "0.68rem",
   },
 
   // Admin panel
@@ -754,11 +836,12 @@ const s: Record<string, React.CSSProperties> = {
     borderBottom: "none",
     borderRadius: "8px 8px 0 0",
     cursor: "pointer",
-    fontSize: "0.72rem",
+    fontSize: "0.68rem",
+    fontFamily: FONT,
+    fontWeight: 500,
     color: "#90a4ae",
-    letterSpacing: "0.06em",
+    letterSpacing: "0.1em",
     textTransform: "uppercase" as const,
-    fontFamily: "system-ui, sans-serif",
   },
   adminToggleDash: {
     display: "inline-block",
@@ -783,16 +866,13 @@ const s: Record<string, React.CSSProperties> = {
     gap: "0.6rem",
   },
   adminPanelLabel: {
-    fontSize: "0.75rem",
+    fontSize: "0.72rem",
+    fontFamily: FONT,
     color: "#90a4ae",
     letterSpacing: "0.05em",
     margin: 0,
-    fontFamily: "system-ui, sans-serif",
   },
-  adminRow: {
-    display: "flex",
-    gap: "0.5rem",
-  },
+  adminRow: { display: "flex", gap: "0.5rem" },
   adminInput: {
     flex: 1,
     padding: "0.55rem 0.85rem",
@@ -812,14 +892,15 @@ const s: Record<string, React.CSSProperties> = {
     borderRadius: "6px",
     cursor: "pointer",
     fontWeight: 600,
-    fontSize: "0.88rem",
-    fontFamily: "system-ui, sans-serif",
-    letterSpacing: "0.03em",
+    fontSize: "0.85rem",
+    fontFamily: FONT,
+    letterSpacing: "0.08em",
+    textTransform: "uppercase" as const,
     whiteSpace: "nowrap" as const,
   },
 };
 
-// ─── Suspense wrapper (required by Next.js 14 for useSearchParams) ─────────────
+// ─── Suspense wrapper required by Next.js 14 for useSearchParams ──────────────
 
 export default function KioskPage() {
   return (
