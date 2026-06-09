@@ -311,8 +311,7 @@ function TPGLogo() {
           width: "auto",
           maxWidth: 240,
           display: "block",
-          // The real logo has a white background — make it transparent on white page
-          mixBlendMode: "multiply" as const,
+
         }}
         onError={() => setImgFailed(true)}
       />
@@ -374,7 +373,7 @@ function KioskIllustration({ phase }: { phase: Phase }) {
         position: "relative",
         zIndex: 2,
         marginBottom: -16,
-        // Animate: float in idle, still in scanning, shake on error
+        background: "transparent",
         animation: isError
           ? "none"
           : isScanning
@@ -391,8 +390,9 @@ function KioskIllustration({ phase }: { phase: Phase }) {
               maxWidth: 200,
               display: "block",
               objectFit: "contain",
-              // Drop shadow so it looks placed on the surface
-              filter: "drop-shadow(0 12px 28px rgba(26,58,156,0.30)) drop-shadow(0 2px 6px rgba(0,0,0,0.18))",
+              background: "transparent",
+              // CSS drop-shadow follows the alpha channel of a transparent PNG
+              filter: "drop-shadow(0 12px 28px rgba(26,58,156,0.28)) drop-shadow(0 2px 6px rgba(0,0,0,0.15))",
             }}
             onError={() => setBottleFailed(true)}
           />
