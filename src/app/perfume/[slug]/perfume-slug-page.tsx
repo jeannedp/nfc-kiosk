@@ -5,6 +5,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { notFound } from "next/navigation";
+import BottleImage from "./BottleImage";
 
 // ─── Types (unchanged) ────────────────────────────────────────────────────────
 
@@ -202,7 +203,11 @@ export default function PerfumePage({ params }: { params: { slug: string } }) {
 
             {/* LEFT: illustration + identity */}
             <div className="identity-col">
-              <BottleIllustration accent={perfume.accentColor} />
+              <BottleImage
+                slug={perfume.slug}
+                accent={perfume.accentColor}
+                imageDescription={perfume.imageDescription}
+              />
               <div className="identity-text">
                 <p className="brand-name">{perfume.brand}</p>
                 <h1 className="perfume-name">{perfume.name}</h1>
@@ -644,6 +649,11 @@ const pageStyles = `
   }
   .bottle-wrap {
     flex-shrink: 0;
+    width: 200px;
+    height: 300px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
   }
   .bottle-svg {
     display: block;
